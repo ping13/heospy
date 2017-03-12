@@ -1,0 +1,52 @@
+Command: heos://system/register_for_change_events?enable='on_or_off' 
+Command: heos://system/check_account
+Command: heos://system/sign_in?un=heos_username&pw=heos_password
+Command: heos://system/sign_out 
+Command: heos://system/heart_beat 
+Command: heos://system/reboot
+Command: heos://system/prettify_json_response?enable='on_or_off' 
+Command: heos://player/get_players
+Command: heos://player/get_player_info?pid=player_id
+Command: heos://player/get_play_state?pid=player_id
+Command: heos://player/set_play_state?pid=player_id&state=play_state
+Command: heos://player/get_now_playing_media?pid=player_id
+Command: heos://player/get_volume?pid='player_id'
+Command: heos://player/set_volume?pid=player_id&level=vol_level
+Command: heos://player/volume_up?pid=player_id&step=step_level
+Command: heos://player/volume_down?pid=player_id&step=step_level
+Command: heos://player/get_mute?pid=player_id
+Command: heos://player/set_mute?pid=player_id&state=on_or_off
+Command: heos://player/toggle_mute?pid=player_id
+Command: heos://player/get_play_mode?pid=player_id
+Command: heos://player/set_play_mode?pid='player_id'&repeat=
+Command: heos://player/get_queue?pid=player_id&range=start#, end# 
+Command: heos://player/play_queue?pid=player_id&qid=queue_song_id 
+Command: heos://player/remove_from_queue?pid=player_id&qid=queue_id_1,queue_id_2,…,queue_id_n
+Command: heos://player/save_queue?pid=player_id&name=playlist_name
+Command: heos://player/clear_queue?pid=player_id
+Command: heos://player/play_next?pid=player_id 
+Command: heos://player/play_previous?pid=player_id 
+Command: heos://group/get_groups 
+Command: heos://group/get_group_info?gid=group_id
+Command: heos://group/set_group?pid=player_id_leader, player_id_member_1,…,player_id_member_n
+Command: heos://group/get_volume?gid=group_id
+Command: heos://group/set_volume?gid=group_id&level=vol_level
+Command: heos://group/volume_up?gid=group_id&step=step_level
+Command: heos://group/volume_down?gid=group_id&step=step_level
+Command: heos://group/get_mute?gid=group_id
+Command: heos://group/set_mute?gid=group_id&state=on_or_off
+Command: heos://group/toggle_mute?gid=group_id
+Command: heos://browse/get_music_sources 
+Command: heos://browse/get_source_info?sid=source_id
+Command: heos://browse/browse?sid=source_id
+Command: heos://browse/browse?sid=source_id&cid=container_id&range=start#, end#
+Command: heos://browse/get_search_criteria?sid=source_id
+Command: heos://browse/search?sid=source_id&search=search_string&scid=search_criteria&range=start#, end#
+Command: heos://browse/play_stream?pid=player_id&sid=source_id&cid=container_id&mid=media_id&name=station_name
+Command: heos://browse/play_preset?pid=player_id&preset=preset_position
+Command: heos://browse/add_to_queue?pid=player_id&sid=source_id&cid=container_id&aid=add_criteria
+Command: heos://browse/add_to_queue?pid=player_id&sid=source_id&cid=container_id&mid=media_id&aid=add-criteria 
+Command: heos://browse/rename_playlist?sid=source_id&cid=contaiiner_id&name=playlist_name 
+Command: heos://browse/delete_playlist?sid=source_id&cid=contaiiner_id 
+Command: heos://browse/retrieve_metadata?sid=source_id&cid=album_id
+Command: heos://browse/get_service_options?sid=source_id

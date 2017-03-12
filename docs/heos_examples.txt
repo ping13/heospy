@@ -1,0 +1,53 @@
+Example: heos://system/register_for_change_events?enable=on 
+Example: heos://system/check_account
+Example: heos://system/sign_in?un=user@gmail.com&pw=12345 
+Example: heos://system/sign_out
+Example: heos://system/heart_beat
+Example: heos://system/reboot
+Example: heos://system/prettify_json_response?enable=on 
+Example: heos://player/get_players
+Example: heos://player/get_player_info?pid=1 
+Example: heos://player/get_playe_state?pid=1
+Example: heos://player/set_play_state?pid=1&state=play 
+Example: heos://player/get_now_playing_media?pid=1
+Example: heos://player/get_volume?pid=1
+Example: heos://player/set_volume?pid=2&level=30 
+Example: heos://player/volume_up?pid=2&step=5
+Example: heos://player/volume_down?pid=2&step=5
+Example: heos://player/get_mute?pid=1
+Example: heos://player/set_mute?pid=3&state=off 
+Example: heos://player/toggle_mute?pid=3 
+Example: heos://player/set_play_mode?pid=1&repeat=on_all&shuffle=off 
+Example: heos://player/get_queue?pid=1&range=0,10 
+Example: heos://player/play_queue?pid=2&qid=9 
+Example: heos://player/remove_from_queue? pid=1&qid=4,5,6
+Example: heos://player/save_queue?pid=1&name=great playlist 
+Example: heos://player/clear_queue
+Example: heos://player/play_next?pid=1
+Example: heos://player/play_previous?pid=1
+Example: heos://group/get_groups
+Example: heos://group/get_group_info&?gid=1
+Example: heos://group/set_group?pid=3,1,4
+Example: heos://group/get_volume?gid=1 
+Example: heos://group/set_volume?gid=1&level=30 
+Example: heos://group/volume_up?gid=1&step=5
+Example: heos://group/volume_down?gid=1&step=5
+Example: heos://group/get_mute?gid=1
+Example: heos://group/set_mute?gid=1&state=off 
+Example: heos://group/toggle_mute?gid=1 
+Example: heos://browse/get_music_sources
+Example: heos://browse/get_source_info
+Example: heos://browse/browse?sid=1
+Example: heos://browse/browse?sid=1346442495
+Example: heos://browse/browse?sid=2&cid=TopAlbums&range=0,100 
+Example: heos://browse/get_search_criteria?sid=3 
+Example: heos://browse/search?sid=2&search="U2"&scid=1 
+Example: heos://browse/play_stream?pid=1&sid=2&cid='CID-55'&mid=15376&name=Q95 
+Example: heos://browse/play_stream?pid=1&preset=2 
+Example: heos://browse/add_to_queue?pid=1&sid=5&cid=Artist/All&aid=2 
+Example: heos://browse/add_to_queue?pid=1&sid=8&cid=Artists/All&mid=9&aid=1 
+Example: heos://browse/rename_playlist?sid=11&cid=234&name=new name
+Example: heos://browse/delete_playlist?sid=11&cid=234
+Example: heos://browse/retrieve_metadata?sid=2&cid=Alb.184664171
+Example: heos://browse/get_service_options?sid=5
+Example: heos://browse/set_service_option?sid=2&option=1&mid=Tra.174684187
