@@ -18,7 +18,7 @@ You have an [HEOS]() speaker in your local network and Python 2.7.
         2017-02-12 20:32:36,824 INFO Found 'Living room' in your local network
         $
         
-3. Call any command from the [CLI specs](), see also `docs/` folder. Additional
+3. Call any command from the [CLI specs](specs), see also `docs/` folder. Additional
    arguments are given with `-p`. The player id will be automatically
    submitted. Some examples:
 
@@ -29,7 +29,7 @@ You have an [HEOS]() speaker in your local network and Python 2.7.
         
     Use the flag `--help` for a detailed help.
 
-[CLI specs]: http://rn.dmglobal.com/euheos/HEOS_CLI_ProtocolSpecification.pdf
+[specs]: http://rn.dmglobal.com/euheos/HEOS_CLI_ProtocolSpecification.pdf
 [HEOS]: http://heoslink.denon.com
 [HEOS account]: http://denon.custhelp.com/app/answers/detail/a_id/1968
 

@@ -13,7 +13,7 @@ import re
 import logging
 import argparse
 
-import ssdp
+import ssdp # Simple Service Discovery Protocol (SSDP), https://gist.github.com/dankrause/6000248
 
 
 config = { }
@@ -59,6 +59,7 @@ This needs a JSON config file with a minimal content:
         if rediscover or (not self.host or not self.pid):
             logging.info("Starting to discover your HEOS player '{}' in your local network".format(self.player_name))
             ssdp_list = ssdp.discover(self.URN_SCHEMA)
+            self.telnet = None
             for response in ssdp_list:
                 if response.st == self.URN_SCHEMA:
                     try:
@@ -72,6 +73,11 @@ This needs a JSON config file with a minimal content:
                     except Exception, e:
                         logging.error(e)
                         pass
+            if self.telnet == None:
+                msg = "couldn't discover HEOS player with Simple Service Discovery Protocol (SSDP)."
+                logging.error(msg)
+                raise Exception(msg)
+                    
         else:
             logging.info("My cache says your HEOS player '{}' is at {}".format(config.get("player_name"),
                                                                                self.host))
@@ -89,7 +95,7 @@ This needs a JSON config file with a minimal content:
                 self.user = config.get("user")
                 
         # save config
-        if config.get("pid") is None and self.host and self.pid:
+        if (rediscover or config.get("pid") is None) and self.host and self.pid:
             logging.info("Save host and pid in {}".format(config_file))
             config["pid"] = self.pid
             config["host"] = self.host
@@ -165,6 +171,7 @@ This needs a JSON config file with a minimal content:
         s["general"].append(self.telnet_request("system/check_account"))
         s["general"].append(self.telnet_request("browse/get_music_sources"))
         s["general"].append(self.telnet_request("player/get_players"))
+        s["general"].append(self.telnet_request("group/get_groups"))
         if self.pid:
             s["player"].append(self.telnet_request("player/get_play_state?pid={0}".format(self.pid)))
             s["player"].append(self.telnet_request("player/get_player_info?pid={0}".format(self.pid)))
