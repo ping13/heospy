@@ -2,13 +2,13 @@
 
 ## Requirements
 
-You have an [HEOS]() speaker in your local network and Python 2.7.
+You have an [HEOS][] speaker in your local network and Python 2.7.
 
 ## Usage
 
 1. Create a `config.json` file in the same directory as the script. The file
-   contains the name of the [HEOS]() player you want to control and the
-   username and password of your [HEOS account](). See `example-config.json`for
+   contains the name of the [HEOS][] player you want to control and the
+   username and password of your [HEOS account][]. See `example-config.json`for
    an example.
 
 2. Run the script for the first time to see how this works:
@@ -18,7 +18,7 @@ You have an [HEOS]() speaker in your local network and Python 2.7.
         2017-02-12 20:32:36,824 INFO Found 'Living room' in your local network
         $
         
-3. Call any command from the [CLI specs](specs), see also `docs/` folder. Additional
+3. Call any command from the [CLI specs][specs], see also `docs/` folder. Additional
    arguments are given with `-p`. The player id will be automatically
    submitted. Some examples:
 
@@ -44,9 +44,9 @@ sources.
 
 ## Usage with Raspberry Pi and Kodi
 
-If you have [OSMC]() or any other [Kodi Media center][Kodi] implementation on
+If you have [OSMC][] or any other [Kodi Media center][Kodi] implementation on
 your [Raspberry Pi][raspi], you can map certain actions for your HEOS on a
-[keymap]().
+[keymap][].
 
 [OSMC]: https://osmc.tv
 [raspi]: https://www.raspberrypi.org
