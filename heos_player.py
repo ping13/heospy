@@ -70,7 +70,7 @@ This needs a JSON config file with a minimal content:
                             self.player_name = config.get("player_name")
                             logging.info("Found '{}' in your local network".format(self.player_name))
                             break
-                    except Exception, e:
+                    except Exception as e:
                         logging.error(e)
                         pass
             if self.telnet == None:
@@ -83,8 +83,8 @@ This needs a JSON config file with a minimal content:
                                                                                self.host))
             try:
                 self.telnet = telnetlib.Telnet(self.host, 1255, timeout=TIMEOUT)
-            except Exception:
-                raise Exception("telnet failed")
+            except Exception as e:
+                raise Exception("telnet failed: {}".format(e))
 
         # check if we've found what we were looking for
         if self.host is None:
