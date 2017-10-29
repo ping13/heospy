@@ -22,7 +22,7 @@ try:
     CONFIG_PATH = os.path.dirname(__file__)
 except NameError:
     CONFIG_PATH = "."
-
+TIMEOUT = 15
 
 class HeosPlayer(object):
     """Representation of an HEOS player with a specific player id.
@@ -64,7 +64,7 @@ This needs a JSON config file with a minimal content:
                 if response.st == self.URN_SCHEMA:
                     try:
                         self.host = re.match(r"http:..([^\:]+):", response.location).group(1)
-                        self.telnet = telnetlib.Telnet(self.host,1255)
+                        self.telnet = telnetlib.Telnet(self.host, 1255)
                         self.pid = self._get_player(config.get("player_name"))
                         if self.pid:
                             self.player_name = config.get("player_name")
@@ -81,7 +81,10 @@ This needs a JSON config file with a minimal content:
         else:
             logging.info("My cache says your HEOS player '{}' is at {}".format(config.get("player_name"),
                                                                                self.host))
-            self.telnet = telnetlib.Telnet(self.host,1255)
+            try:
+                self.telnet = telnetlib.Telnet(self.host, 1255, timeout=TIMEOUT)
+            except Exception:
+                raise Exception("telnet failed")
 
         # check if we've found what we were looking for
         if self.host is None:
@@ -101,7 +104,6 @@ This needs a JSON config file with a minimal content:
             config["host"] = self.host
             with open(os.path.join(CONFIG_PATH, 'config.json'), "w") as json_data_file:
                 json.dump(config, json_data_file, indent=2)
-
         
     def __repr__(self):
         return "<HeosPlayer({player_name}, {user}, {host}, {pid})>".format(**self.__dict__)
@@ -220,17 +222,26 @@ def main():
     if script_args.param:
         heos_args = dict(script_args.param)
 
-    # initialize connection to HEOS player
+    # determine the config file
+    config_file  = os.path.join(CONFIG_PATH, 'config.json')
     if script_args.config:
-        p = HeosPlayer(rediscover = script_args.rediscover, config_file=script_args.config)
-    else:
-        p = HeosPlayer(rediscover = script_args.rediscover)
+        config_file  = script_args.config
+
+    # initialize connection to HEOS player
+    try:
+        p = HeosPlayer(rediscover = script_args.rediscover, config_file=config_file)
+    except:
+        if script_args.rediscover == False:
+            logging.info("First connection failed. Try to rediscover the HEOS players.")
+            p = HeosPlayer(rediscover = True, config_file=config_file)
+
+    # check status or issue a command
     if script_args.status:
         logging.info("Try to find some status info from {}".format(p.host))
-        print json.dumps(p.status(), indent=2)
+        print(json.dumps(p.status(), indent=2))
     elif heos_cmd:
         logging.info("Issue command '{}' with arguments {}".format(heos_cmd, heos_args))
-        print json.dumps(p.cmd(heos_cmd, heos_args), indent=2)
+        print(json.dumps(p.cmd(heos_cmd, heos_args), indent=2))
     else:
         logging.info("Nothing to do.")
         
