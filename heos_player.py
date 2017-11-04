@@ -12,6 +12,7 @@ import telnetlib
 import re
 import logging
 import argparse
+import six
 
 import ssdp # Simple Service Discovery Protocol (SSDP), https://gist.github.com/dankrause/6000248
 
@@ -162,8 +163,8 @@ This needs a JSON config file with a minimal content:
             logging.warn("no player is defined.")
         else:
             s = '{0}?pid={1}'.format(cmd, self.pid)
-            
-        for (key,value) in args.iteritems():
+
+        for (key,value) in six.iteritems(args):
             s += "&{}={}".format(key, value)
         return self.telnet_request(s)
     
