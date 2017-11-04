@@ -1,4 +1,6 @@
-#   Copyright 2014 Dan Krause
+# -*- coding: utf-8 -*-
+
+#   Copyright 2014 Dan Krause, Python 3 hack 2016 Adam Baxter
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -13,12 +15,11 @@
 #   limitations under the License.
 
 import socket
-import future
 import http.client
 import io
 
 class SSDPResponse(object):
-    class _FakeSocket(io.StringIO):
+    class _FakeSocket(io.BytesIO):
         def makefile(self, *args, **kw):
             return self
     def __init__(self, response):
@@ -28,6 +29,8 @@ class SSDPResponse(object):
         self.usn = r.getheader("usn")
         self.st = r.getheader("st")
         self.cache = r.getheader("cache-control").split("=")[1]
+        # get headers list in dict
+        self.headers = dict(r.getheaders())
     def __repr__(self):
         return "<SSDPResponse({location}, {st}, {usn})>".format(**self.__dict__)
 
@@ -44,7 +47,8 @@ def discover(service, timeout=5, retries=1, mx=3):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
-        sock.sendto(message.format(*group, st=service, mx=mx), group)
+        message_bytes = message.format(*group, st=service, mx=mx).encode('utf-8')
+        sock.sendto(message_bytes, group)
         while True:
             try:
                 response = SSDPResponse(sock.recv(1024))
@@ -52,3 +56,7 @@ def discover(service, timeout=5, retries=1, mx=3):
             except socket.timeout:
                 break
     return list(responses.values())
+
+# Example for upnp service:
+# import ssdp
+# ssdp.discover("upnp:rootdevice")

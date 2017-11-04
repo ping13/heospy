@@ -84,7 +84,7 @@ This needs a JSON config file with a minimal content:
             try:
                 self.telnet = telnetlib.Telnet(self.host, 1255, timeout=TIMEOUT)
             except Exception as e:
-                raise Exception("telnet failed: {}".format(e))
+                raise Exception("telnet failed")
 
         # check if we've found what we were looking for
         if self.host is None:
