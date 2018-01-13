@@ -2,14 +2,14 @@
 
 ## Requirements
 
-You have an [HEOS][] speaker in your local network and Python 2.7.
+You have an [HEOS][] speaker in your local network and Python 2.7 or Python 3.
 
 ## Usage
 
 1. Create a `config.json` file in the same directory as the script. The file
-   contains the name of the [HEOS][] player you want to control and the
-   username and password of your [HEOS account][]. See `example-config.json`for
-   an example.
+   contains the name of the lead [HEOS][] player you want to control and the
+   username and password of your [HEOS account][]. See `example-config.json`
+   for an example.
 
 2. Run the script for the first time to see how this works:
 
@@ -18,9 +18,9 @@ You have an [HEOS][] speaker in your local network and Python 2.7.
         2017-02-12 20:32:36,824 INFO Found 'Living room' in your local network
         $
         
-3. Call any command from the [CLI specs][specs], see also `docs/` folder. Additional
-   arguments are given with `-p`. The player id will be automatically
-   submitted. Some examples:
+3. Now you can call any command from the [CLI specs][specs], see also `docs/`
+   folder. Additional arguments are given with `-p`. The player id will be
+   automatically submitted. Some examples:
 
         python heos_player.py player/toggle_mute
         python heos_player.py player/set_volume -p level=19
@@ -36,8 +36,9 @@ You have an [HEOS][] speaker in your local network and Python 2.7.
 ## Limitations and To-dos
 
 The class `HeosPlayer` currently works with one HEOS player (as I only have one
-HEOS speaker). One should extend this to support multiple players, preferably
-with a default player for issuing commands.
+HEOS speaker). If this player is a lead player in a group, you can control the
+group, too. One should extend this to support multiple players, preferably with
+a default player for issuing commands.
 
 The cache in the `config.json` file should contain the players, groups and
 sources.
@@ -73,4 +74,6 @@ Example `keyboard.xml`-file:
 ## Credits
 
 - first code from <https://github.com/mrjohnsen/heos-python>
-- the SSDS discovery library is from <https://gist.github.com/dankrause/6000248>
+- the SSDS discovery library is from
+  <https://gist.github.com/dankrause/6000248>, with an additional modification
+  by Adam Baxter to get this working for Python 3.

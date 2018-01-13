@@ -93,7 +93,6 @@ This needs a JSON config file with a minimal content:
         elif self.pid is None:
             logging.error("No player with name '{}' found!".format(config.get("player_name")))
         else:
-            # try to login, if possible
             if self.login(user=config.get("user"),
                           pw = config.get("pw")):
                 self.user = config.get("user")
@@ -153,7 +152,25 @@ This needs a JSON config file with a minimal content:
         return None
 
     def login(self, user = "", pw = ""):
+        # fist check if we're already signed in: get the currently signed in
+        # user from the system
+        signed_in_message = self.telnet_request("system/check_account").get("heos",{}).get("message", "")
+        is_signed_in = "signed_in&" in signed_in_message
+
+        if is_signed_in:
+            # if signed in, we should also have the same user here.
+            signed_in_user = signed_in_message.split("&")[1][3:]
+            if signed_in_user==user:
+                logging.info("Already signed in as {}".format(signed_in_user))
+                return True
+            else:
+                logging.info("user '{}' is different from '{}'".format(signed_in_user, user))
+
+        # At this point, it seems as if we have to really sign in, which takes
+        # a second or two...
+        logging.info("Sign in as {}".format(user))
         return self.telnet_request("system/sign_in?un={}&pw={}".format(user, pw))
+    
 
     def cmd(self, cmd, args):
         """ issue a command for our player """
@@ -231,7 +248,9 @@ def main():
     # initialize connection to HEOS player
     try:
         p = HeosPlayer(rediscover = script_args.rediscover, config_file=config_file)
-    except:
+    except: # if the connection failed, it might be because the cached IP for
+            # the HEOS player is not valid anymore. We check if we can rediscover
+            # the new IP of the HEOS player
         if script_args.rediscover == False:
             logging.info("First connection failed. Try to rediscover the HEOS players.")
             p = HeosPlayer(rediscover = True, config_file=config_file)
