@@ -185,10 +185,10 @@ This needs a JSON config file with a minimal content:
         if self.pid is None:
             logging.warn("no player is defined.")
         else:
-            if "groups/" in s:
+            if "groups/" in s or "group/" in s:
                 logging.info("I assume default group with id {0}".format(self.pid))
                 s = '{0}?gid={1}'.format(cmd, self.pid)
-            elif "player/" in s:
+            elif "player/" in s or "players" in s:
                 logging.info("I assume default player with id {0}".format(self.pid))
                 s = '{0}?pid={1}'.format(cmd, self.pid)
             else:
