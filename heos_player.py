@@ -180,23 +180,34 @@ This needs a JSON config file with a minimal content:
 
     def cmd(self, cmd, args):
         """ issue a command for our player """
-        s = cmd
 
-        if self.pid is None:
-            logging.warn("no player is defined.")
+        # parse args and check if there is a gid or pid exlicitly given
+        args_concatenated = ""
+        pid_explicitly_given = False
+        gid_explicitly_given = False
+        for (key,value) in six.iteritems(args):
+            args_concatenated += "&{}={}".format(key, value)
+            if key == "pid":
+                pid_explicitly_given = True
+            if key == "gid":
+                gid_explicitly_given = True
+
+        if self.pid is None and ("groups/" in cmd or "group/" in cmd or "browse/" in cmd):
+            logging.warn("No default player is defined.")
         else:
-            if "groups/" in s or "group/" in s:
+            # if this is a command where a gid or a pid is needed, check if we
+            # could use the default pid from the config file
+            if ("groups/" in cmd or "group/" in cmd or "browse/" in cmd) and not gid_explicitly_given:
                 logging.info("I assume default group with id {0}".format(self.pid))
                 s = '{0}?gid={1}'.format(cmd, self.pid)
-            elif "player/" in s or "players" in s:
+            elif ("player/" in cmd or "players" in cmd) and not pid_explicitly_given:
                 logging.info("I assume default player with id {0}".format(self.pid))
                 s = '{0}?pid={1}'.format(cmd, self.pid)
             else:
-                pass
+                s = '{0}?dummy=1'.format(cmd) # use dummy so that
+                                              # args_concatenated is correctly attached
 
-        for (key,value) in six.iteritems(args):
-            s += "&{}={}".format(key, value)
-        return self.telnet_request(s)
+        return self.telnet_request(s + args_concatenated)
     
     def status(self):
         s = { "general" : [], "player" : [] }
