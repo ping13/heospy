@@ -50,9 +50,9 @@ This needs a JSON config file with a minimal content:
 
         self.host = config.get("host")
         self.pid = config.get("pid")
-        self.player_name = config.get("player_name")
+        self.player_name = config.get("player_name", config.get("main_player_name"))
 
-        if config.get("player_name") is None:
+        if self.player_name is None:
             logging.warn("No player name given.")
             raise Exception("No player name given.")
         
@@ -66,9 +66,9 @@ This needs a JSON config file with a minimal content:
                     try:
                         self.host = re.match(r"http:..([^\:]+):", response.location).group(1)
                         self.telnet = telnetlib.Telnet(self.host, 1255)
-                        self.pid = self._get_player(config.get("player_name"))
+                        self.pid = self._get_player(self.player_name)
                         if self.pid:
-                            self.player_name = config.get("player_name")
+                            self.player_name = config.get("player_name", config.get("main_player_name"))
                             logging.info("Found '{}' in your local network".format(self.player_name))
                             break
                     except Exception as e:
@@ -80,7 +80,7 @@ This needs a JSON config file with a minimal content:
                 raise Exception(msg)
                     
         else:
-            logging.info("My cache says your HEOS player '{}' is at {}".format(config.get("player_name"),
+            logging.info("My cache says your HEOS player '{}' is at {}".format(self.player_name,
                                                                                self.host))
             try:
                 self.telnet = telnetlib.Telnet(self.host, 1255, timeout=TIMEOUT)
@@ -91,7 +91,7 @@ This needs a JSON config file with a minimal content:
         if self.host is None:
             logging.error("No HEOS player found in your local network")
         elif self.pid is None:
-            logging.error("No player with name '{}' found!".format(config.get("player_name")))
+            logging.error("No player with name '{}' found!".format(self.player_name))
         else:
             if self.login(user=config.get("user"),
                           pw = config.get("pw")):
@@ -142,11 +142,17 @@ This needs a JSON config file with a minimal content:
             
         return response
 
+    def _get_groups_players(self):
+        groups = self.telnet_request("player/get_groups").get("payload")
+        players = self.telnet_request("player/get_players").get("payload")
+        return { "players" : players, "groups" : groups } 
+
     def _get_player(self, name):
         response = self.telnet_request("player/get_players")
         if response.get("payload") is None:
             return None
         for player in response.get("payload"):
+            logging.debug(u"found '{}', looking for '{}'".format(player.get("name"), name))
             if player.get("name") == name:
                 return player.get("pid")
         return None
@@ -168,7 +174,7 @@ This needs a JSON config file with a minimal content:
 
         # At this point, it seems as if we have to really sign in, which takes
         # a second or two...
-        logging.info("Sign in as {}".format(user))
+        logging.info("Need to sign in as {} to have access to favorites etc.".format(user))
         return self.telnet_request("system/sign_in?un={}&pw={}".format(user, pw))
     
 
@@ -179,7 +185,14 @@ This needs a JSON config file with a minimal content:
         if self.pid is None:
             logging.warn("no player is defined.")
         else:
-            s = '{0}?pid={1}'.format(cmd, self.pid)
+            if "groups/" in s:
+                logging.info("I assume default group with id {0}".format(self.pid))
+                s = '{0}?gid={1}'.format(cmd, self.pid)
+            elif "player/" in s:
+                logging.info("I assume default player with id {0}".format(self.pid))
+                s = '{0}?pid={1}'.format(cmd, self.pid)
+            else:
+                pass
 
         for (key,value) in six.iteritems(args):
             s += "&{}={}".format(key, value)
