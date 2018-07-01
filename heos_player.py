@@ -13,6 +13,7 @@ import re
 import logging
 import argparse
 import six
+import sys
 
 import ssdp # Simple Service Discovery Protocol (SSDP), https://gist.github.com/dankrause/6000248
 
@@ -239,6 +240,8 @@ def parse_args():
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("cmd", nargs="?",
                         help="command to send to HEOS player")
+    parser.add_argument("-i", '--infile', nargs='?', type=argparse.FileType('r'),
+                        default=None)
     parser.add_argument("-s", "--status", action='store_true', default=False,
                         help="return various status information", dest="status")
     parser.add_argument("-r", "--rediscover", action='store_true', default=False,
@@ -283,6 +286,30 @@ def main():
     if script_args.status:
         logging.info("Try to find some status info from {}".format(p.host))
         print(json.dumps(p.status(), indent=2))
+    elif script_args.infile:
+        logging.debug("reading a list of commands from {}".format(script_args.infile))
+        all_lines = script_args.infile.read().splitlines()
+        # execute each cmd
+        all_results = []
+        for line in all_lines:
+            if len(line) > 0 and line[0] == "#": continue # skip comments
+            # get elements separated by whitespaces
+            cmd_args = line.split()
+            if len(cmd_args) == 0: continue
+            # first element is the command, like "player/set_volume"
+            heos_cmd = cmd_args[0]
+            # othere elements are parameters like "level=10", collect them in a
+            # dictionary
+            heos_args = dict([ kv.split("=") for kv in cmd_args[1:] ])
+            # issue the actual command
+            logging.info("Issue command '{}' with arguments {}".format(heos_cmd, heos_args))
+            result = p.cmd(heos_cmd, heos_args)
+            all_results.append(result)
+            if result.get("heos", {}).get("result", "") != "success":
+                break
+            
+        # print all results at the end
+        print json.dumps(all_results, indent=2)
     elif heos_cmd:
         logging.info("Issue command '{}' with arguments {}".format(heos_cmd, heos_args))
         print(json.dumps(p.cmd(heos_cmd, heos_args), indent=2))
