@@ -2,7 +2,12 @@
 
 ## Requirements
 
-You have an [HEOS][] speaker in your local network and Python 2.7 or Python 3.
+You have an [HEOS][] speaker in your local network and Python 2.7 or
+Python 3. Make sure you have the required modules:
+
+```
+pip install -r requirements.txt
+```
 
 ## Usage
 
