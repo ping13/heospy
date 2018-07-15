@@ -309,7 +309,7 @@ def main():
                 break
             
         # print all results at the end
-        print json.dumps(all_results, indent=2)
+        print(json.dumps(all_results, indent=2))
     elif heos_cmd:
         logging.info("Issue command '{}' with arguments {}".format(heos_cmd, heos_args))
         print(json.dumps(p.cmd(heos_cmd, heos_args), indent=2))
