@@ -2,7 +2,12 @@
 
 ## Requirements
 
-You have an [HEOS][] speaker in your local network and Python 2.7 or Python 3.
+You have an [HEOS][] speaker in your local network and Python 2.7 or
+Python 3. Make sure you have the required modules:
+
+```
+pip install -r requirements.txt
+```
 
 ## Usage
 
@@ -26,23 +31,44 @@ You have an [HEOS][] speaker in your local network and Python 2.7 or Python 3.
         python heos_player.py player/set_volume -p level=19
         python heos_player.py player/play_preset -p preset=3
         python heos_player.py player/set_play_state -p state=stop
+        python heos_player.py group/toggle_mute 
+        python heos_player.py group/toggle_mute -p gid=-1352658342
         
     Use the flag `--help` for a detailed help.
+    
+4. You can also execute a sequence of commands at once. The sequence can be
+   given in a file:
+   
+        python heos_player.py -i cmds.txt
+        
+   An example for `cmds.txt` is:
+   
+        system/heart_beat
+        # let's set a volume
+        player/set_volume level=10
+        # let's check if the volume is correct
+        player/get_volume 
+
+   Note that comments are possible and start with a `#`. You can also get the
+   sequence of commands from `stdin`:
+   
+        printf "system/heart_beat\nplayer/set_volume level=10\nplayer/get_volume" | python heos_player.py -i -
 
 [specs]: http://rn.dmglobal.com/euheos/HEOS_CLI_ProtocolSpecification.pdf
 [HEOS]: http://heoslink.denon.com
 [HEOS account]: http://denon.custhelp.com/app/answers/detail/a_id/1968
 
-## Limitations and To-dos
+## Main player setting
 
-The class `HeosPlayer` currently works with one HEOS player (as I only have one
-HEOS speaker). If this player is a lead player in a group, you can control the
-group, too. One should extend this to support multiple players, preferably with
-a default player for issuing commands.
+The class `HeosPlayer` assumes a main HEOS player, stored in the config
+file. For commands starting with `player/`, we assume that this player should
+be used, otherwise you need to specify the player id explicitly as a parameter.
 
-The cache in the `config.json` file should contain the players, groups and
-sources.
+If this player is a lead player in a group, this group is also the main group
+for commands starting with `group/`. Again, you can override this setting be
+explicitly mention the group id as a  parameter.
 
+    
 ## Usage with Raspberry Pi and Kodi
 
 If you have [OSMC][] or any other [Kodi Media center][Kodi] implementation on
