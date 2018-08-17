@@ -65,8 +65,11 @@ This needs a JSON config file with a minimal content:
                 if response.st == self.URN_SCHEMA:
                     try:
                         self.host = re.match(r"http:..([^\:]+):", response.location).group(1)
+                        logging.debug("Testing host '{}'".format(self.host))                    
                         self.telnet = telnetlib.Telnet(self.host, 1255)
+                        logging.debug("Telnet '{}'".format(self.telnet))                    
                         self.pid = self._get_player(self.player_name)
+                        logging.debug("pid '{}'".format(self.pid))                                            
                         if self.pid:
                             self.player_name = config.get("player_name", config.get("main_player_name"))
                             logging.info("Found '{}' in your local network".format(self.player_name))
@@ -112,12 +115,14 @@ This needs a JSON config file with a minimal content:
         """Execute a `command` and return the response(s)."""
         command = self.heosurl + command
         logging.debug("telnet request {}".format(command))
-        self.telnet.write(command.encode('ASCII') + b'\r\n')
+        self.telnet.write(command.encode('ascii') + b'\n')
         response = b''
+        logging.debug("starting response loop")
         while True:
             response += self.telnet.read_some()
             try:
-                response = json.loads(response)
+                response = json.loads(response.decode("utf-8"))
+                logging.debug("found valid JSON: {}".format(json.dumps(response)))
                 if not wait:
                     logging.debug("I accept the first response: {}".format(response))
                     break
@@ -130,9 +135,11 @@ This needs a JSON config file with a minimal content:
                 logging.debug("Wait for the final response")
                 response = b'' # forget this message
             except ValueError:
+                logging.debug("... unfinished response: {}".format(response))
                 # response is not a complete JSON object
                 pass
             except TypeError:
+                logging.debug("... unfinished response: {}".format(response))                
                 # response is not a complete JSON object
                 pass
 
@@ -140,6 +147,7 @@ This needs a JSON config file with a minimal content:
             logging.warn(response)
             return None
             
+        logging.debug("found valid response: {}".format(json.dumps(response)))
         return response
 
     def _get_groups_players(self):
