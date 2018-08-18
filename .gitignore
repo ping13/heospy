@@ -1,3 +1,5 @@
 env
 config.json
 *.pyc
+build
+dist

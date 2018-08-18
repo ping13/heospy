@@ -18,13 +18,26 @@ import sys
 import ssdp # Simple Service Discovery Protocol (SSDP), https://gist.github.com/dankrause/6000248
 
 
-config = { }
+# determine a default path for the config file
+DEFAULT_CONFIG_PATH = "."
+for location in os.curdir, os.path.expanduser("~/.heospy"), os.environ.get("HEOSPY_CONF"):
+    if location is None:
+        continue
+    try:
+        testname = os.path.join(location,"config.json")
+        if os.path.exists(testname):
+            DEFAULT_CONFIG_PATH = location
+            break
+    except IOError:
+        pass
 
-try:
-    CONFIG_PATH = os.path.dirname(__file__)
-except NameError:
-    CONFIG_PATH = "."
+    
 TIMEOUT = 15
+
+class HeosPlayerConfigException(Exception):
+    pass
+class HeosPlayerGeneralException(Exception):
+    pass
 
 class HeosPlayer(object):
     """Representation of an HEOS player with a specific player id.
@@ -42,20 +55,27 @@ This needs a JSON config file with a minimal content:
     URN_SCHEMA = "urn:schemas-denon-com:device:ACT-Denon:1"
     
     def __init__(self, rediscover = False,
-                 config_file = os.path.join(CONFIG_PATH, 'config.json')):
+                 config_file = os.path.join(DEFAULT_CONFIG_PATH, 'config.json')):
         """Initialize HEOS player."""
         self.heosurl = 'heos://'
 
-        with open(config_file) as json_data_file:
-            config = json.load(json_data_file)
-
+        try:
+            with open(config_file) as json_data_file:
+                config = json.load(json_data_file)
+        except IOError:
+            error_msg = "cannot read your config file '{}'".format(config_file)
+            logging.error(error_msg)
+            raise HeosPlayerConfigException(error_msg)
+        
+        logging.debug("use config file '{}'".format(config_file))
+        
         self.host = config.get("host")
         self.pid = config.get("pid")
         self.player_name = config.get("player_name", config.get("main_player_name"))
 
         if self.player_name is None:
             logging.warn("No player name given.")
-            raise Exception("No player name given.")
+            raise HeosPlayerGeneralException("No player name given.")
         
         # if host and pid is not known, detect the first HEOS device.
         if rediscover or (not self.host or not self.pid):
@@ -81,7 +101,7 @@ This needs a JSON config file with a minimal content:
             if self.telnet == None:
                 msg = "couldn't discover HEOS player with Simple Service Discovery Protocol (SSDP)."
                 logging.error(msg)
-                raise Exception(msg)
+                raise HeosPlayerGeneralException(msg)
                     
         else:
             logging.info("My cache says your HEOS player '{}' is at {}".format(self.player_name,
@@ -89,7 +109,7 @@ This needs a JSON config file with a minimal content:
             try:
                 self.telnet = telnetlib.Telnet(self.host, 1255, timeout=TIMEOUT)
             except Exception as e:
-                raise Exception("telnet failed")
+                raise HeosPlayerGeneralException("telnet failed")
 
         # check if we've found what we were looking for
         if self.host is None:
@@ -106,7 +126,7 @@ This needs a JSON config file with a minimal content:
             logging.info("Save host and pid in {}".format(config_file))
             config["pid"] = self.pid
             config["host"] = self.host
-            with open(os.path.join(CONFIG_PATH, 'config.json'), "w") as json_data_file:
+            with open(os.path.join(self.config_file), "w") as json_data_file:
                 json.dump(config, json_data_file, indent=2)
         
     def __repr__(self):
@@ -238,10 +258,10 @@ def parse_args():
 
     epilog = """Some example commands:
         
-  python heos_player.py player/toggle_mute
-  python heos_player.py player/set_volume -p level=19
-  python heos_player.py player/play_preset -p preset=3
-  python heos_player.py player/set_play_state -p state=stop
+  heos_player player/toggle_mute
+  heos_player player/set_volume -p level=19
+  heos_player player/play_preset -p preset=3
+  heos_player player/set_play_state -p state=stop
 """
 
     parser = argparse.ArgumentParser(description=__doc__, epilog=epilog,
@@ -276,20 +296,29 @@ def main():
         heos_args = dict(script_args.param)
 
     # determine the config file
-    config_file  = os.path.join(CONFIG_PATH, 'config.json')
+    logging.debug("DEFAULT_CONFIG_PATH is '{}'".format(DEFAULT_CONFIG_PATH))
+    config_file  = os.path.join(DEFAULT_CONFIG_PATH, 'config.json')
     if script_args.config:
         config_file  = script_args.config
+        logging.debug("from --config, I got '{}'".format(config_file))
 
     # initialize connection to HEOS player
     try:
         p = HeosPlayer(rediscover = script_args.rediscover, config_file=config_file)
-    except: # if the connection failed, it might be because the cached IP for
-            # the HEOS player is not valid anymore. We check if we can rediscover
-            # the new IP of the HEOS player
+    except HeosPlayerConfigException:
+        logging.info("Try to find a valid config file and specifiy it with '--config'...")
+        sys.exit(-1)
+    except HeosPlayerGeneralException:
+        # if the connection failed, it might be because the cached IP for
+        # the HEOS player is not valid anymore. We check if we can rediscover
+        # the new IP of the HEOS player
         if script_args.rediscover == False:
             logging.info("First connection failed. Try to rediscover the HEOS players.")
             p = HeosPlayer(rediscover = True, config_file=config_file)
-
+    except:
+        logging.error("Someting unexpected got wrong...")
+        sys.exit(-1)
+        
     # check status or issue a command
     if script_args.status:
         logging.info("Try to find some status info from {}".format(p.host))
