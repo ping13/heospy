@@ -81,6 +81,7 @@ This needs a JSON config file with a minimal content:
         if rediscover or (not self.host or not self.pid):
             logging.info("Starting to discover your HEOS player '{}' in your local network".format(self.player_name))
             ssdp_list = ssdp.discover(self.URN_SCHEMA)
+            logging.debug("found {} ssdp".format(len(ssdp_list)))
             self.telnet = None
             for response in ssdp_list:
                 if response.st == self.URN_SCHEMA:
@@ -99,7 +100,7 @@ This needs a JSON config file with a minimal content:
                         logging.error(e)
                         pass
             if self.telnet == None:
-                msg = "couldn't discover HEOS player with Simple Service Discovery Protocol (SSDP)."
+                msg = "couldn't discover any HEOS player with Simple Service Discovery Protocol (SSDP)."
                 logging.error(msg)
                 raise HeosPlayerGeneralException(msg)
                     
