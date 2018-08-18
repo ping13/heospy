@@ -72,7 +72,8 @@ This needs a JSON config file with a minimal content:
         self.host = config.get("host")
         self.pid = config.get("pid")
         self.player_name = config.get("player_name", config.get("main_player_name"))
-
+        self.config_file = config_file
+        
         if self.player_name is None:
             logging.warn("No player name given.")
             raise HeosPlayerGeneralException("No player name given.")
@@ -81,7 +82,7 @@ This needs a JSON config file with a minimal content:
         if rediscover or (not self.host or not self.pid):
             logging.info("Starting to discover your HEOS player '{}' in your local network".format(self.player_name))
             ssdp_list = ssdp.discover(self.URN_SCHEMA)
-            logging.debug("found {} ssdp".format(len(ssdp_list)))
+            logging.debug("found {} possible hosts: {}".format(len(ssdp_list), ssdp_list))
             self.telnet = None
             for response in ssdp_list:
                 if response.st == self.URN_SCHEMA:
@@ -318,7 +319,7 @@ def main():
             p = HeosPlayer(rediscover = True, config_file=config_file)
     except:
         logging.error("Someting unexpected got wrong...")
-        sys.exit(-1)
+        raise
         
     # check status or issue a command
     if script_args.status:
