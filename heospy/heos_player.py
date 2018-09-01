@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-"""A script to control an HEOS player.
+"""A script to control an HEOS player, see <https://github.com/ping13/heospy>
+for details.
 
 Specification of the HEOS interface at
 http://rn.dmglobal.com/euheos/HEOS_CLI_ProtocolSpecification.pdf
@@ -280,7 +281,7 @@ def parse_args():
                         type=lambda kv: kv.split("="), dest='param', metavar="param=value",
                         help="optional key-value pairs that needs to be accompanied to the command that is sent to the HEOS player.")
     parser.add_argument("-c", "--config", dest="config", default="", metavar="filename",
-                        help="config file (by default, the script looks for a config file in the current directory)")
+                        help="config file (by default, the script looks for a config file called `config.json` in the current directory, then in $HOME/.heospy, then in $HEOSPY_CONF)")
     parser.add_argument("-l", "--log", dest="logLevel", default="INFO",
                         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], help="Set the logging level")
 
