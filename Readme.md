@@ -3,22 +3,25 @@
 ## Requirements
 
 You have an [HEOS][] speaker in your local network and Python 2.7 or
-Python 3. Make sure you have the required modules:
-
-```
-pip install -r requirements.txt
-```
+Python 3.
 
 ## Usage
 
-1. Create a `config.json` file in the same directory as the script. The file
-   contains the name of the lead [HEOS][] player you want to control and the
-   username and password of your [HEOS account][]. See `example-config.json`
-   for an example.
+0. Install the package with 
+
+```
+python setup.py install
+```
+
+1. Create a `config.json` file, which may reside in the current directory, in
+   `$HOME/.heospy` or in a directory wich is specified by the environment
+   variable `$HEOSPY_CONF`. The config file contains the name of the lead
+   [HEOS][] player you want to control and the username and password of your
+   [HEOS account][]. See `example-config.json` for an example.
 
 2. Run the script for the first time to see how this works:
 
-        $ python heos_player.py 
+        $ heos_player
         2017-02-12 20:32:29,880 INFO Starting to discover your HEOS player 'Living room' in your local network
         2017-02-12 20:32:36,824 INFO Found 'Living room' in your local network
         $
@@ -27,19 +30,19 @@ pip install -r requirements.txt
    folder. Additional arguments are given with `-p`. The player id will be
    automatically submitted. Some examples:
 
-        python heos_player.py player/toggle_mute
-        python heos_player.py player/set_volume -p level=19
-        python heos_player.py player/play_preset -p preset=3
-        python heos_player.py player/set_play_state -p state=stop
-        python heos_player.py group/toggle_mute 
-        python heos_player.py group/toggle_mute -p gid=-1352658342
+        heos_player player/toggle_mute
+        heos_player player/set_volume -p level=19
+        heos_player player/play_preset -p preset=3
+        heos_player player/set_play_state -p state=stop
+        heos_player group/toggle_mute 
+        heos_player group/toggle_mute -p gid=-1352658342
         
     Use the flag `--help` for a detailed help.
     
 4. You can also execute a sequence of commands at once. The sequence can be
    given in a file:
    
-        python heos_player.py -i cmds.txt
+        heos_player -i cmds.txt
         
    An example for `cmds.txt` is:
    
@@ -52,7 +55,7 @@ pip install -r requirements.txt
    Note that comments are possible and start with a `#`. You can also get the
    sequence of commands from `stdin`:
    
-        printf "system/heart_beat\nplayer/set_volume level=10\nplayer/get_volume" | python heos_player.py -i -
+        printf "system/heart_beat\nplayer/set_volume level=10\nplayer/get_volume" | heos_player -i -
 
 [specs]: http://rn.dmglobal.com/euheos/HEOS_CLI_ProtocolSpecification.pdf
 [HEOS]: http://heoslink.denon.com
@@ -85,11 +88,11 @@ Example `keyboard.xml`-file:
 <keymap>
   <global>
     <keyboard>
-      <F1>RunScript(/home/osmc/dev/heospy/heos_player.py, player/play_preset, -p, preset=1)</F1>
-      <F2>RunScript(/home/osmc/dev/heospy/heos_player.py, player/play_preset, -p, preset=2)</F2>
-      <F3>RunScript(/home/osmc/dev/heospy/heos_player.py, player/play_preset, -p, preset=3)</F3>
-      <F4>RunScript(/home/osmc/dev/heospy/heos_player.py, player/play_preset, -p, preset=4)</F4>
-      <F12>RunScript(/home/osmc/dev/heospy/heos_player.py, player/set_play_state, -p, state=stop)</F12>
+      <F1>RunScript(heos_player, player/play_preset, -p, preset=1)</F1>
+      <F2>RunScript(heos_player, player/play_preset, -p, preset=2)</F2>
+      <F3>RunScript(heos_player, player/play_preset, -p, preset=3)</F3>
+      <F4>RunScript(heos_player, player/play_preset, -p, preset=4)</F4>
+      <F12>RunScript(heos_player, player/set_play_state, -p, state=stop)</F12>
     </keyboard>
   </global>
   <Home>

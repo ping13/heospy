@@ -1,3 +1,7 @@
 env
 config.json
 *.pyc
+build
+dist
+*.egg-info
+
