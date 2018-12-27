@@ -34,27 +34,27 @@ python setup.py install
         heos_player player/set_volume -p level=19
         heos_player player/play_preset -p preset=3
         heos_player player/set_play_state -p state=stop
-        heos_player group/toggle_mute 
+        heos_player group/toggle_mute
         heos_player group/toggle_mute -p gid=-1352658342
-        
+
     Use the flag `--help` for a detailed help.
-    
+
 4. You can also execute a sequence of commands at once. The sequence can be
    given in a file:
-   
+
         heos_player -i cmds.txt
-        
+
    An example for `cmds.txt` is:
-   
+
         system/heart_beat
         # let's set a volume
         player/set_volume level=10
         # let's check if the volume is correct
-        player/get_volume 
+        player/get_volume
 
    Note that comments are possible and start with a `#`. You can also get the
    sequence of commands from `stdin`:
-   
+
         printf "system/heart_beat\nplayer/set_volume level=10\nplayer/get_volume" | heos_player -i -
 
 [specs]: http://rn.dmglobal.com/euheos/HEOS_CLI_ProtocolSpecification.pdf
@@ -71,7 +71,6 @@ If this player is a lead player in a group, this group is also the main group
 for commands starting with `group/`. Again, you can override this setting be
 explicitly mention the group id as a  parameter.
 
-    
 ## Usage with Raspberry Pi and Kodi
 
 If you have [OSMC][] or any other [Kodi Media center][Kodi] implementation on
@@ -84,19 +83,20 @@ your [Raspberry Pi][raspi], you can map certain actions for your HEOS on a
 [keymap]: http://kodi.wiki/view/Keymaps
 
 Example `keyboard.xml`-file:
-```
+
+```xml
 <keymap>
-  <global>
-    <keyboard>
-      <F1>RunScript(heos_player, player/play_preset, -p, preset=1)</F1>
-      <F2>RunScript(heos_player, player/play_preset, -p, preset=2)</F2>
-      <F3>RunScript(heos_player, player/play_preset, -p, preset=3)</F3>
-      <F4>RunScript(heos_player, player/play_preset, -p, preset=4)</F4>
-      <F12>RunScript(heos_player, player/set_play_state, -p, state=stop)</F12>
-    </keyboard>
-  </global>
-  <Home>
-  </Home>
+<global>
+<keyboard>
+<F1>RunScript(heos_player, player/play_preset, -p, preset=1)</F1>
+<F2>RunScript(heos_player, player/play_preset, -p, preset=2)</F2>
+<F3>RunScript(heos_player, player/play_preset, -p, preset=3)</F3>
+<F4>RunScript(heos_player, player/play_preset, -p, preset=4)</F4>
+<F12>RunScript(heos_player, player/set_play_state, -p, state=stop)</F12>
+</keyboard>
+</global>
+<Home>
+</Home>
 </keymap>
 ```
 
