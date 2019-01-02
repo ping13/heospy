@@ -61,15 +61,36 @@ python setup.py install
 [HEOS]: http://heoslink.denon.com
 [HEOS account]: http://denon.custhelp.com/app/answers/detail/a_id/1968
 
-## Main player setting
+## Main player setting and referencing other players by name
 
 The class `HeosPlayer` assumes a main HEOS player, stored in the config
 file. For commands starting with `player/`, we assume that this player should
-be used, otherwise you need to specify the player id explicitly as a parameter.
+be used, otherwise you need to specify the player id explicitly as a parameter
+`pid`. 
 
-If this player is a lead player in a group, this group is also the main group
-for commands starting with `group/`. Again, you can override this setting be
-explicitly mention the group id as a  parameter.
+You may also specify a player by name by using the fake parameter `pname`: the
+class `HeosPlayer` will search for a player with the given name and will try to
+translate it to a player id, e.g. with:
+
+    $ python heospy/heos_player.py -l DEBUG player/clear_queue -p pname=Kitchen
+    [...]
+    2019-01-02 20:47:35,314 INFO Issue command 'player/get_queue' with arguments {"pname": "Kitchen"}
+    2019-01-02 20:47:35,314 DEBUG translated player name 'Kitchen' to pid=-2122099729
+    2019-01-02 20:47:35,314 DEBUG telnet request heos://player/get_queue?dummy=1&pid=-2122099729
+    [...]
+    {
+      "payload": [], 
+      "heos": {
+        "message": "dummy=1&pid=-2122099729&returned=0&count=0", 
+        "command": "player/get_queue", 
+        "result": "success"
+      }
+    }
+
+If the main player is a lead player in a group, this group is also the main
+group for commands starting with `group/`. Again, you can override this setting
+be explicitly mention the group id as a parameter.
+
 
 ## Usage with Raspberry Pi and Kodi
 

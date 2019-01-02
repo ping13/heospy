@@ -75,10 +75,11 @@ This needs a JSON config file with a minimal content:
         self.pid = config.get("pid")
         self.player_name = config.get("player_name", config.get("main_player_name"))
         self.config_file = config_file
+        self.players = config.get("players", {})
         
         if self.player_name is None:
-            logging.warn("No player name given.")
-            raise HeosPlayerGeneralException("No player name given.")
+            logging.warn("No main player name given.")
+            raise HeosPlayerGeneralException("No main player name given.")
         
         # if host and pid is not known, detect the first HEOS device.
         if rediscover or (not self.host or not self.pid):
@@ -97,7 +98,7 @@ This needs a JSON config file with a minimal content:
                         logging.debug("pid '{}'".format(self.pid))                                            
                         if self.pid:
                             self.player_name = config.get("player_name", config.get("main_player_name"))
-                            logging.info("Found '{}' in your local network".format(self.player_name))
+                            logging.info("Found main player '{}' in your local network".format(self.player_name))
                             break
                     except Exception as e:
                         logging.error(e)
@@ -106,7 +107,20 @@ This needs a JSON config file with a minimal content:
                 msg = "couldn't discover any HEOS player with Simple Service Discovery Protocol (SSDP)."
                 logging.error(msg)
                 raise HeosPlayerGeneralException(msg)
-                    
+
+            # store list of players
+            result = self.telnet_request("player/get_players")
+            if result:
+                self.players = {}
+                for this_player in result.get("payload", {}):
+                    self.players[this_player["name"]] = this_player["pid"]
+                config["players"] = self.players
+                logging.info("In total, I found {} players in the network.".format(len(self.players)))
+            else:
+                msg = "I couldn't find list of players."
+                logging.error(msg)
+                raise HeosPlayerGeneralException(msg)
+            
         else:
             logging.info("My cache says your HEOS player '{}' is at {}".format(self.player_name,
                                                                                self.host))
@@ -121,12 +135,15 @@ This needs a JSON config file with a minimal content:
         elif self.pid is None:
             logging.error("No player with name '{}' found!".format(self.player_name))
         else:
+            # get user and password
             if self.login(user=config.get("user"),
                           pw = config.get("pw")):
                 self.user = config.get("user")
+
                 
         # save config
         if (rediscover or config.get("pid") is None) and self.host and self.pid:
+                
             logging.info("Save host and pid in {}".format(config_file))
             config["pid"] = self.pid
             config["host"] = self.host
@@ -220,11 +237,21 @@ This needs a JSON config file with a minimal content:
         gid_explicitly_given = False
 
         for (key,value) in six.iteritems(args):
+            if key == "pname":
+                key = "pid"
+                new_value = self.players.get(value.decode("utf-8"), False)
+                if new_value is False:
+                    raise HeosPlayerGeneralException("Player name '{}' is not known. ({}). Try to rediscover all players.".format(value, self.players.keys()))
+                logging.debug("translated player name '{}' to pid={}".format(value, new_value))
+                value = new_value
+
             args_concatenated += "&{}={}".format(key, value)
             if key == "pid":
                 pid_explicitly_given = True
             if key == "gid":
                 gid_explicitly_given = True
+                
+
 
         if self.pid is None and ("groups/" in cmd or "group/" in cmd or "browse/" in cmd):
             logging.warn("No default player is defined.")
@@ -311,7 +338,7 @@ def main():
     try:
         p = HeosPlayer(rediscover = script_args.rediscover, config_file=config_file)
     except HeosPlayerConfigException:
-        logging.info("Try to find a valid config file and specifiy it with '--config'...")
+        logging.info("Try to find a valid config file and specify it with '--config'...")
         sys.exit(-1)
     except HeosPlayerGeneralException:
         # if the connection failed, it might be because the cached IP for
@@ -340,11 +367,11 @@ def main():
             if len(cmd_args) == 0: continue
             # first element is the command, like "player/set_volume"
             heos_cmd = cmd_args[0]
-            # othere elements are parameters like "level=10", collect them in a
-            # dictionary
-            heos_args = dict([ kv.split("=") for kv in cmd_args[1:] ])
+            # other elements are parameters like "level=10" or "pid=387387",
+            # collect them in a dictionary
+            heos_args = OrderedDict([ kv.split("=") for kv in cmd_args[1:] ])
             # issue the actual command
-            logging.info("Issue command '{}' with arguments {}".format(heos_cmd, heos_args))
+            logging.info("Issue command '{}' with arguments {}".format(heos_cmd, json.dumps(heos_args)))
             result = p.cmd(heos_cmd, heos_args)
             all_results.append(result)
             if result.get("heos", {}).get("result", "") != "success":
@@ -353,7 +380,7 @@ def main():
         # print all results at the end
         print(json.dumps(all_results, indent=2))
     elif heos_cmd:
-        logging.info("Issue command '{}' with arguments {}".format(heos_cmd, heos_args))
+        logging.info("Issue command '{}' with arguments {}".format(heos_cmd, json.dumps(heos_args)))
         print(json.dumps(p.cmd(heos_cmd, heos_args), indent=2))
     else:
         logging.info("Nothing to do.")
