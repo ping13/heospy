@@ -15,6 +15,7 @@ import logging
 import argparse
 import six
 import sys
+from collections import OrderedDict
 
 import ssdp # Simple Service Discovery Protocol (SSDP), https://gist.github.com/dankrause/6000248
 
@@ -217,6 +218,7 @@ This needs a JSON config file with a minimal content:
         args_concatenated = ""
         pid_explicitly_given = False
         gid_explicitly_given = False
+
         for (key,value) in six.iteritems(args):
             args_concatenated += "&{}={}".format(key, value)
             if key == "pid":
@@ -296,7 +298,7 @@ def main():
                         level=getattr(logging, script_args.logLevel))
     
     if script_args.param:
-        heos_args = dict(script_args.param)
+        heos_args = OrderedDict(script_args.param)
 
     # determine the config file
     logging.debug("DEFAULT_CONFIG_PATH is '{}'".format(DEFAULT_CONFIG_PATH))
