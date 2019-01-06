@@ -45,12 +45,12 @@ python setup.py install
 
 ## Parsing the response from HEOS
 
-A `heos_player` returns a JSON object which directly comes from the HEOS
-player, like:
+`heos_player` returns a JSON object which directly comes from an HEOS
+player. For example:
 
     python heospy/heos_player.py player/get_volume
     
-which gives something like
+gives something like
 
     {
         "heos": {
@@ -76,8 +76,8 @@ puts the contained attributes in a seperate property `heos_message_parsed`:
        }
      }
 
-With [`jq`](https://stedolan.github.io/jq/), you can directly parse the result
-in the command line:
+With [`jq`](https://stedolan.github.io/jq/), you can directly get the result on
+the command line:
 
      $ python heospy/heos_player.py player/get_volume | jq .heos_message_parsed.level
      "13"
@@ -136,7 +136,10 @@ played.
     player/play_stream pname=Küche url=http://example.com/example.mp3
     wait 360 
     player/set_mute -p state=on
-    
+
+It's a current limitation that `heospy` doesn't listen to events emitted from
+any HEOS player.
+
 You can also get the sequence of commands from `stdin`:
 
     printf "system/heart_beat\nplayer/set_volume level=10\nplayer/get_volume" | heos_player -i -
@@ -170,9 +173,10 @@ Example `keyboard.xml`-file:
 </keymap>
 ```
 
-## To-do
+## Limitations
 
-Currently, heospy cannot listen to events, as specified in [1]. 
+Currently, heospy cannot listen to events from any HEOS player, as they are
+specified in the [specification][specs].
 
 ## Credits
 

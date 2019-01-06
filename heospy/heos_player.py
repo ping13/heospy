@@ -178,10 +178,6 @@ This needs a JSON config file with a minimal content:
                 # response is not a complete JSON object
                 pass
 
-        if response.get("result") == "fail":
-            logging.warn(response)
-            return None
-
         # try to parse the message attribute of the response, there might be
         # some useful information, especially if the payload attribute is
         # missing
@@ -359,7 +355,11 @@ def main():
                         level=getattr(logging, script_args.logLevel))
     
     if script_args.param:
-        heos_args = OrderedDict(script_args.param)
+        try:
+            heos_args = OrderedDict(script_args.param)
+        except ValueError:
+            logging.error("there are some errors in your '--param' arguments: '{}'".format(script_args.param))
+            sys.exit(0)
 
     # determine the config file
     logging.debug("DEFAULT_CONFIG_PATH is '{}'".format(DEFAULT_CONFIG_PATH))
@@ -394,6 +394,7 @@ def main():
         all_lines = script_args.infile.read().splitlines()
         # execute each cmd
         all_results = []
+        fail = False
         for line in all_lines:
             if len(line) > 0 and line[0] == "#": continue # skip comments
             # get elements separated by whitespaces
@@ -402,7 +403,10 @@ def main():
             # first element is the command, like "player/set_volume"
             heos_cmd = cmd_args[0]
             if heos_cmd == "wait": # this is a special command
-                secs = int(cmd_args[1])
+                try:
+                    secs = int(cmd_args[1])
+                except IndexError:
+                    secs=1
                 time.sleep(secs)
                 all_results.append({ "heospy" : { "sleep": "successful for {} secs".format(secs) } })
             else:
@@ -414,13 +418,24 @@ def main():
                 result = p.cmd(heos_cmd, heos_args)
                 all_results.append(result)
                 if result.get("heos", {}).get("result", "") != "success":
+                    fail = True
                     break
             
         # print all results at the end
         print(json.dumps(all_results, indent=2))
+
+        # if the last result was not a success, return with -1
+        if fail:
+            sys.exit(-1)
+            
     elif heos_cmd:
         logging.info("Issue command '{}' with arguments {}".format(heos_cmd, json.dumps(heos_args)))
-        print(json.dumps(p.cmd(heos_cmd, heos_args), indent=2))
+        result = p.cmd(heos_cmd, heos_args)
+        print(json.dumps(result, indent=2))
+
+        # if the result was not a success, return with -1
+        if result.get("heos", {}).get("result", "") != "success":
+            sys.exit(-1)
     else:
         logging.info("Nothing to do.")
         
