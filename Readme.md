@@ -39,27 +39,48 @@ python setup.py install
 
     Use the flag `--help` for a detailed help.
 
-4. You can also execute a sequence of commands at once. The sequence can be
-   given in a file:
-
-        heos_player -i cmds.txt
-
-   An example for `cmds.txt` is:
-
-        system/heart_beat
-        # let's set a volume
-        player/set_volume level=10
-        # let's check if the volume is correct
-        player/get_volume
-
-   Note that comments are possible and start with a `#`. You can also get the
-   sequence of commands from `stdin`:
-
-        printf "system/heart_beat\nplayer/set_volume level=10\nplayer/get_volume" | heos_player -i -
-
 [specs]: http://rn.dmglobal.com/euheos/HEOS_CLI_ProtocolSpecification.pdf
 [HEOS]: http://heoslink.denon.com
 [HEOS account]: http://denon.custhelp.com/app/answers/detail/a_id/1968
+
+## Parsing the response from HEOS
+
+A `heos_player` returns a JSON object which directly comes from the HEOS
+player, like:
+
+    python heospy/heos_player.py player/get_volume
+    
+which gives something like
+
+    {
+        "heos": {
+            "message": "pid=-1352658342&level=13", 
+            "command": "player/get_volume", 
+            "result": "success"
+        }
+    }
+
+Unfortunately, HEOS hides some of the results in the `message` property (here:
+the volume level of the main player). `heospy` parses the message string and
+puts the contained attributes in a seperate property `heos_message_parsed`:
+
+     {
+       "heos_message_parsed": {
+         "pid": "-1352658342", 
+         "level": "13"
+       }, 
+       "heos": {
+         "message": "pid=-1352658342&level=13", 
+         "command": "player/get_volume", 
+         "result": "success"
+       }
+     }
+
+With [`jq`](https://stedolan.github.io/jq/), you can directly parse the result
+in the command line:
+
+     $ python heospy/heos_player.py player/get_volume | jq .heos_message_parsed.level
+     "13"
 
 ## Main player setting and referencing other players by name
 
@@ -72,9 +93,9 @@ You may also specify a player by name by using the fake parameter `pname`: the
 class `HeosPlayer` will search for a player with the given name and will try to
 translate it to a player id, e.g. with:
 
-    $ python heospy/heos_player.py -l DEBUG player/clear_queue -p pname=Kitchen
+    $ python heospy/heos_player.py -l DEBUG player/clear_queue -p pname=Küche
     [...]
-    2019-01-02 20:47:35,314 INFO Issue command 'player/get_queue' with arguments {"pname": "Kitchen"}
+    2019-01-02 20:47:35,314 INFO Issue command 'player/get_queue' with arguments {"pname": "Küche"}
     2019-01-02 20:47:35,314 DEBUG translated player name 'Kitchen' to pid=-2122099729
     2019-01-02 20:47:35,314 DEBUG telnet request heos://player/get_queue?dummy=1&pid=-2122099729
     [...]
@@ -89,8 +110,36 @@ translate it to a player id, e.g. with:
 
 If the main player is a lead player in a group, this group is also the main
 group for commands starting with `group/`. Again, you can override this setting
-be explicitly mention the group id as a parameter.
+be explicitly mention the group id as a parameter. You may also specify the
+group by name with a fake parameter `gname`.
 
+## Rudimentary scripting of HEOS commands
+
+You can also execute a sequence of commands at once. The sequence can be given
+in a text file:
+
+    heos_player -i cmds.txt
+
+An example for `cmds.txt` is:
+
+    system/heart_beat
+    # let's set a volume
+    player/set_volume level=10
+    # let's check if the volume is correct
+    player/get_volume
+
+Note that comments are possible and start with a `#`. There is also a special
+command `wait`, which waits a number of seconds until the next command is
+played.
+
+    # play an MP3 file, wait 360 seconds and then turn the mute button on
+    player/play_stream pname=Küche url=http://example.com/example.mp3
+    wait 360 
+    player/set_mute -p state=on
+    
+You can also get the sequence of commands from `stdin`:
+
+    printf "system/heart_beat\nplayer/set_volume level=10\nplayer/get_volume" | heos_player -i -
 
 ## Usage with Raspberry Pi and Kodi
 
@@ -120,6 +169,10 @@ Example `keyboard.xml`-file:
 </Home>
 </keymap>
 ```
+
+## To-do
+
+Currently, heospy cannot listen to events, as specified in [1]. 
 
 ## Credits
 

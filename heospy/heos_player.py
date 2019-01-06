@@ -15,6 +15,7 @@ import logging
 import argparse
 import six
 import sys
+import time
 from collections import OrderedDict
 
 import ssdp # Simple Service Discovery Protocol (SSDP), https://gist.github.com/dankrause/6000248
@@ -63,7 +64,7 @@ This needs a JSON config file with a minimal content:
 
         try:
             with open(config_file) as json_data_file:
-                config = json.load(json_data_file)
+                self._config = json.load(json_data_file)
         except IOError:
             error_msg = "cannot read your config file '{}'".format(config_file)
             logging.error(error_msg)
@@ -71,19 +72,22 @@ This needs a JSON config file with a minimal content:
         
         logging.debug("use config file '{}'".format(config_file))
         
-        self.host = config.get("host")
-        self.pid = config.get("pid")
-        self.player_name = config.get("player_name", config.get("main_player_name"))
-        self.config_file = config_file
-        self.players = config.get("players", {})
+        self.host = self._config.get("host")
+        self.pid = self._config.get("pid")
+        self.main_player_name = self._config.get("player_name", self._config.get("main_player_name"))
+        self._config_file = config_file
+        self.names = dict()
+        self.names["players"] = self._config.get("players", {})
+        self.names["groups"] = self._config.get("groups", {})
+        self.groups = None
         
-        if self.player_name is None:
+        if self.main_player_name is None:
             logging.warn("No main player name given.")
             raise HeosPlayerGeneralException("No main player name given.")
         
         # if host and pid is not known, detect the first HEOS device.
         if rediscover or (not self.host or not self.pid):
-            logging.info("Starting to discover your HEOS player '{}' in your local network".format(self.player_name))
+            logging.info("Starting to discover your HEOS player '{}' in your local network".format(self.main_player_name))
             ssdp_list = ssdp.discover(self.URN_SCHEMA)
             logging.debug("found {} possible hosts: {}".format(len(ssdp_list), ssdp_list))
             self.telnet = None
@@ -94,11 +98,11 @@ This needs a JSON config file with a minimal content:
                         logging.debug("Testing host '{}'".format(self.host))                    
                         self.telnet = telnetlib.Telnet(self.host, 1255)
                         logging.debug("Telnet '{}'".format(self.telnet))                    
-                        self.pid = self._get_player(self.player_name)
+                        self.pid = self._get_player(self.main_player_name)
                         logging.debug("pid '{}'".format(self.pid))                                            
                         if self.pid:
-                            self.player_name = config.get("player_name", config.get("main_player_name"))
-                            logging.info("Found main player '{}' in your local network".format(self.player_name))
+                            self.main_player_name = self._config.get("player_name", self._config.get("main_player_name"))
+                            logging.info("Found main player '{}' in your local network".format(self.main_player_name))
                             break
                     except Exception as e:
                         logging.error(e)
@@ -108,21 +112,10 @@ This needs a JSON config file with a minimal content:
                 logging.error(msg)
                 raise HeosPlayerGeneralException(msg)
 
-            # store list of players
-            result = self.telnet_request("player/get_players")
-            if result:
-                self.players = {}
-                for this_player in result.get("payload", {}):
-                    self.players[this_player["name"]] = this_player["pid"]
-                config["players"] = self.players
-                logging.info("In total, I found {} players in the network.".format(len(self.players)))
-            else:
-                msg = "I couldn't find list of players."
-                logging.error(msg)
-                raise HeosPlayerGeneralException(msg)
+            self._update_groups_players()
             
         else:
-            logging.info("My cache says your HEOS player '{}' is at {}".format(self.player_name,
+            logging.info("My cache says your HEOS player '{}' is at {}".format(self.main_player_name,
                                                                                self.host))
             try:
                 self.telnet = telnetlib.Telnet(self.host, 1255, timeout=TIMEOUT)
@@ -133,23 +126,23 @@ This needs a JSON config file with a minimal content:
         if self.host is None:
             logging.error("No HEOS player found in your local network")
         elif self.pid is None:
-            logging.error("No player with name '{}' found!".format(self.player_name))
+            logging.error("No player with name '{}' found for being a main player!".format(self.main_player_name))
         else:
             # get user and password
-            if self.login(user=config.get("user"),
-                          pw = config.get("pw")):
-                self.user = config.get("user")
+            if self.login(user=self._config.get("user"),
+                          pw = self._config.get("pw")):
+                self.user = self._config.get("user")
 
                 
         # save config
-        if (rediscover or config.get("pid") is None) and self.host and self.pid:
+        if (rediscover or self._config.get("pid") is None) and self.host and self.pid:
                 
             logging.info("Save host and pid in {}".format(config_file))
-            config["pid"] = self.pid
-            config["host"] = self.host
-            with open(os.path.join(self.config_file), "w") as json_data_file:
-                json.dump(config, json_data_file, indent=2)
-        
+            self._config["pid"] = self.pid
+            self._config["host"] = self.host
+            with open(os.path.join(self._config_file), "w") as json_data_file:
+                json.dump(self._config, json_data_file, indent=2)             
+                
     def __repr__(self):
         return "<HeosPlayer({player_name}, {user}, {host}, {pid})>".format(**self.__dict__)
 
@@ -188,14 +181,42 @@ This needs a JSON config file with a minimal content:
         if response.get("result") == "fail":
             logging.warn(response)
             return None
-            
+
+        # try to parse the message attribute of the response, there might be
+        # some useful information, especially if the payload attribute is
+        # missing
+        if response.get("heos", {}).get("message"):
+            message_parsed_list = response.get("heos", {}).get("message").split("&")
+            logging.debug(message_parsed_list)
+            message_parsed = OrderedDict()
+            for item in message_parsed_list:
+                split_items = item.split("=")
+                if len(split_items) == 1:
+                    split_items.append(True)
+                message_parsed[split_items[0]] = split_items[1]
+            response["heos_message_parsed"] = message_parsed
+
         logging.debug("found valid response: {}".format(json.dumps(response)))
         return response
 
-    def _get_groups_players(self):
-        groups = self.telnet_request("player/get_groups").get("payload")
-        players = self.telnet_request("player/get_players").get("payload")
-        return { "players" : players, "groups" : groups } 
+    def _update_groups_players(self):
+        idx = { "groups" : "gid", "players" : "pid" }
+        
+        for aggregate in ["players", "groups"]:
+            result = self.telnet_request("player/get_{}".format(aggregate)).get("payload")
+            if result:
+                self.names[aggregate] = {}
+                logging.debug(result)
+                for this_item in result:
+                    self.names[aggregate][this_item["name"]] = this_item[ idx[aggregate] ]
+                    self._config[aggregate] = self.names[aggregate]
+                logging.info("In total, I found {} {} in the network.".format(len(self.names["players"]), aggregate))
+            else:
+                msg = "I couldn't find a list of {}.".format(aggregate)
+                logging.error(msg)
+                raise HeosPlayerGeneralException(msg)
+        
+        return True
 
     def _get_player(self, name):
         response = self.telnet_request("player/get_players")
@@ -237,15 +258,28 @@ This needs a JSON config file with a minimal content:
         gid_explicitly_given = False
 
         for (key,value) in six.iteritems(args):
-            if key == "pname":
-                key = "pid"
-                new_value = self.players.get(value.decode("utf-8"), False)
-                if new_value is False:
-                    raise HeosPlayerGeneralException("Player name '{}' is not known. ({}). Try to rediscover all players.".format(value, self.players.keys()))
-                logging.debug("translated player name '{}' to pid={}".format(value, new_value))
-                value = new_value
+            if key == "pname" or key == "gname" : # these are custom command, working only with this package
+
+                idx = { "gname" : "gid", "pname" : "pid" }
+                idx2 = { "gid" : "groups", "pid" : "players" }
+
+                # reassign key
+                key = idx[key]
+                # analyse the value, which could be one or many speaker names
+                named_values = value.decode("utf-8").split(u",")
+                value_list = []
+                for named_value in named_values:
+                    new_value = self.names[ idx2[key] ].get(named_value, False)
+                    if new_value is False:
+                        raise HeosPlayerGeneralException("Name '{}' is not known. ({}). Try to rediscover (use flag '-r').".format(value, self.names[idx2[key]].keys()))
+                    logging.debug("translated name '{}' to {}={}".format(value, idx, new_value))
+                    value_list.append(str(new_value))
+                value = ",".join(value_list)
 
             args_concatenated += "&{}={}".format(key, value)
+
+            logging.info("cmd : {}, args {}".format(cmd, args_concatenated))
+
             if key == "pid":
                 pid_explicitly_given = True
             if key == "gid":
@@ -350,7 +384,7 @@ def main():
     except:
         logging.error("Someting unexpected got wrong...")
         raise
-        
+    assert(p)
     # check status or issue a command
     if script_args.status:
         logging.info("Try to find some status info from {}".format(p.host))
@@ -367,15 +401,20 @@ def main():
             if len(cmd_args) == 0: continue
             # first element is the command, like "player/set_volume"
             heos_cmd = cmd_args[0]
-            # other elements are parameters like "level=10" or "pid=387387",
-            # collect them in a dictionary
-            heos_args = OrderedDict([ kv.split("=") for kv in cmd_args[1:] ])
-            # issue the actual command
-            logging.info("Issue command '{}' with arguments {}".format(heos_cmd, json.dumps(heos_args)))
-            result = p.cmd(heos_cmd, heos_args)
-            all_results.append(result)
-            if result.get("heos", {}).get("result", "") != "success":
-                break
+            if heos_cmd == "wait": # this is a special command
+                secs = int(cmd_args[1])
+                time.sleep(secs)
+                all_results.append({ "heospy" : { "sleep": "successful for {} secs".format(secs) } })
+            else:
+                # other elements are parameters like "level=10" or "pid=387387",
+                # collect them in a dictionary
+                heos_args = OrderedDict([ kv.split("=") for kv in cmd_args[1:] ])
+                # issue the actual command
+                logging.info("Issue command '{}' with arguments {}".format(heos_cmd, json.dumps(heos_args)))
+                result = p.cmd(heos_cmd, heos_args)
+                all_results.append(result)
+                if result.get("heos", {}).get("result", "") != "success":
+                    break
             
         # print all results at the end
         print(json.dumps(all_results, indent=2))
