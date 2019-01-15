@@ -206,7 +206,7 @@ This needs a JSON config file with a minimal content:
                 for this_item in result:
                     self.names[aggregate][this_item["name"]] = this_item[ idx[aggregate] ]
                     self._config[aggregate] = self.names[aggregate]
-                logging.info("In total, I found {} {} in the network.".format(len(self.names["players"]), aggregate))
+                logging.info("In total, I found {} {} in your local network.".format(len(self.names[aggregate]), aggregate))
             else:
                 msg = "I couldn't find a list of {}.".format(aggregate)
                 logging.error(msg)
@@ -384,7 +384,7 @@ def main():
     except:
         logging.error("Someting unexpected got wrong...")
         raise
-    assert(p)
+
     # check status or issue a command
     if script_args.status:
         logging.info("Try to find some status info from {}".format(p.host))

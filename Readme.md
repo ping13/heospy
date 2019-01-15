@@ -7,11 +7,8 @@ Python 3.
 
 ## Usage
 
-0. Install the package with 
-
-```
-python setup.py install
-```
+0. Install the package with `pip install heospy` or by downloading the source
+   package and run `python setup.py install`.
 
 1. Create a `config.json` file, which may reside in the current directory, in
    `$HOME/.heospy` or in a directory wich is specified by the environment
@@ -93,20 +90,23 @@ You may also specify a player by name by using the fake parameter `pname`: the
 class `HeosPlayer` will search for a player with the given name and will try to
 translate it to a player id, e.g. with:
 
-    $ python heospy/heos_player.py -l DEBUG player/clear_queue -p pname=Küche
-    [...]
-    2019-01-02 20:47:35,314 INFO Issue command 'player/get_queue' with arguments {"pname": "Küche"}
-    2019-01-02 20:47:35,314 DEBUG translated player name 'Kitchen' to pid=-2122099729
-    2019-01-02 20:47:35,314 DEBUG telnet request heos://player/get_queue?dummy=1&pid=-2122099729
-    [...]
-    {
-      "payload": [], 
-      "heos": {
-        "message": "dummy=1&pid=-2122099729&returned=0&count=0", 
-        "command": "player/get_queue", 
-        "result": "success"
-      }
-    }
+      $ python heospy/heos_player.py player/get_volume -p pname=Küche
+      [...]
+      2019-01-15 20:04:51,624 INFO Issue command 'player/get_volume' with arguments {"pname": "K\u00fcche"}
+      2019-01-15 20:04:51,624 DEBUG translated name 'Küche' to {'pname': 'pid', 'gname': 'gid'}=941891005
+      2019-01-15 20:04:51,625 INFO cmd : player/get_volume, args &pid=941891005
+      [...]
+      {
+         "heos_message_parsed": {
+           "pid": "941891005", 
+           "level": "12"
+         }, 
+         "heos": {
+           "message": "pid=941891005&level=12", 
+           "command": "player/get_volume", 
+           "result": "success"
+         }
+       }
 
 If the main player is a lead player in a group, this group is also the main
 group for commands starting with `group/`. Again, you can override this setting
@@ -123,7 +123,7 @@ in a text file:
 An example for `cmds.txt` is:
 
     system/heart_beat
-    # let's set a volume
+    # let's set a volume level
     player/set_volume level=10
     # let's check if the volume is correct
     player/get_volume
@@ -175,8 +175,9 @@ Example `keyboard.xml`-file:
 
 ## Limitations
 
-Currently, heospy cannot listen to events from any HEOS player, as they are
-specified in the [specification][specs].
+Currently, heospy cannot listen to events from an HEOS player. Events are
+described in the [specification][specs]. Please contact me, if you are
+interested in helping out.
 
 ## Credits
 
