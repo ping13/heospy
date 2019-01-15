@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='heospy',
-    version='0.1.2',
+    version='0.1.3',
     author='Stephan Heuel',
     author_email='mail@ping13.net',
     packages=find_packages(),
@@ -16,5 +16,6 @@ setup(
         'six',
         'future'
     ],
-    long_description=open('Readme.md').read()
+    long_description=open('Readme.md').read(),
+    long_description_content_type='text/markdown'
 )
