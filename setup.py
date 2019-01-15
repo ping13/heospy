@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='heospy',
-    version='0.1.0',
+    version='0.1.1',
     author='Stephan Heuel',
     author_email='mail@ping13.net',
     packages=['heospy'],

@@ -1,0 +1,8 @@
+deploy:
+  provider: pypi
+  user: ping13
+  password:
+    secure: ir2c2Z7wrjLiP+lOIQRPubpCKfzYqyjj8SbYghnHXGrsyZsdB3hMBgp+ew+5arhjgzsRjT5uD6YM2IYrfI/Zphnd9vAu6CBiXG+ylym8M4tk5lergzfSFJENaYM+RxZP9sJVkTfS+Y+B2GnF5yer/FfdDg+jGfJQsw1Jk0r9xddORkp8Oh0GC7kuUNq18S64rrgLARS49ErN5FhEiIY4C/KJHAKSs5pXZMd8I3ugwgbIUm1T7HkhHjnDZMQVqcgVaO9a9E163Tb8buL7kZMTLYumNJ44zfptCgDF3Iw3UqobhHw3Xn/U65X1oPx7egaSthDHhdomqCPHdwSCuJHgj+QjG6aOejgeToxqq6HN0nnmCh+9rIzd8ZFVrlLEhunYrXDNJOLm/QFM8d5T/qpdKemRGoyh/lglOKzrzmnw5qJfYBnzAuXOPjI07RocFaWTTeL0z8VDnWo2iV9cXOhicDmxOAUBxTkrBOp9nthGEV8NSmFlCzj2p9CIb12UeTnFcymN9c1Kyt2QjYp4zOB3/JWSZHxh2VkRwshiVkOgDmEg4JUIXJ3XX+Q/FEIu9zq2ybynaN62ULH3zeUttUu/FQHU9B38K+quTNYplgLBBudTnWBAl16i/7o/ilgKgLvWhaPdsKtp6eUDaR0HJPpeuqngv12+fg3z7wUfwrRRRLg=
+  on:
+    branch: production
+
