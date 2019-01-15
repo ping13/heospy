@@ -1,4 +1,5 @@
 language: python
+dist: bionic
 
 python:
   - "2.7"
