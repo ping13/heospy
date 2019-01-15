@@ -90,10 +90,10 @@ You may also specify a player by name by using the fake parameter `pname`: the
 class `HeosPlayer` will search for a player with the given name and will try to
 translate it to a player id, e.g. with:
 
-      $ python heospy/heos_player.py player/get_volume -p pname=Küche
+      $ python heospy/heos_player.py player/get_volume -p pname=KÃ¼che
       [...]
       2019-01-15 20:04:51,624 INFO Issue command 'player/get_volume' with arguments {"pname": "K\u00fcche"}
-      2019-01-15 20:04:51,624 DEBUG translated name 'Küche' to {'pname': 'pid', 'gname': 'gid'}=941891005
+      2019-01-15 20:04:51,624 DEBUG translated name 'KÃ¼che' to {'pname': 'pid', 'gname': 'gid'}=941891005
       2019-01-15 20:04:51,625 INFO cmd : player/get_volume, args &pid=941891005
       [...]
       {
@@ -133,7 +133,7 @@ command `wait`, which waits a number of seconds until the next command is
 played.
 
     # play an MP3 file, wait 360 seconds and then turn the mute button on
-    player/play_stream pname=Küche url=http://example.com/example.mp3
+    player/play_stream pname=KÃ¼che url=http://example.com/example.mp3
     wait 360 
     player/set_mute -p state=on
 

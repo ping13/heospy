@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+
 """A script to control an HEOS player, see <https://github.com/ping13/heospy>
 for details.
 
@@ -144,7 +146,7 @@ This needs a JSON config file with a minimal content:
                 json.dump(self._config, json_data_file, indent=2)             
                 
     def __repr__(self):
-        return "<HeosPlayer({player_name}, {user}, {host}, {pid})>".format(**self.__dict__)
+        return "<HeosPlayer({main_player_name}, {user}, {host}, {pid})>".format(**self.__dict__)
 
     def telnet_request(self, command, wait = True):
         """Execute a `command` and return the response(s)."""
