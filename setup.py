@@ -1,11 +1,11 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='heospy',
     version='0.1.1',
     author='Stephan Heuel',
     author_email='mail@ping13.net',
-    packages=['heospy'],
+    packages=find_packages(),
     entry_points = {
         'console_scripts': ['heos_player=heospy.heos_player:main'],
     },

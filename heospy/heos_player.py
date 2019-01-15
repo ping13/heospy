@@ -20,7 +20,7 @@ import sys
 import time
 from collections import OrderedDict
 
-import ssdp # Simple Service Discovery Protocol (SSDP), https://gist.github.com/dankrause/6000248
+from . import ssdp # Simple Service Discovery Protocol (SSDP), https://gist.github.com/dankrause/6000248
 
 
 # determine a default path for the config file

@@ -5,6 +5,6 @@ def test_zero():
     try:
         p = heos_player.HeosPlayer()
     except heos_player.HeosPlayerConfigException:
-        logging.warn("no config, but this is okay for now")
+        logging.warning("no config, but this is okay for now")
         pass
     assert True
