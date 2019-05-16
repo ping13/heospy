@@ -211,8 +211,11 @@ This needs a JSON config file with a minimal content:
                 logging.info("In total, I found {} {} in your local network.".format(len(self.names[aggregate]), aggregate))
             else:
                 msg = "I couldn't find a list of {}.".format(aggregate)
-                logging.error(msg)
-                raise HeosPlayerGeneralException(msg)
+                if aggregate == "groups":
+                    logging.warn(msg)
+                else:
+                    logging.error(msg)
+                    raise HeosPlayerGeneralException(msg)
         
         return True
 
