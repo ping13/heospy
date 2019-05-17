@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='heospy',
-    version='0.1.3',
+    version='0.1.4',
     author='Stephan Heuel',
     author_email='mail@ping13.net',
     packages=find_packages(),

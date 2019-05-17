@@ -36,7 +36,7 @@ for location in os.curdir, os.path.expanduser("~/.heospy"), os.environ.get("HEOS
     except IOError:
         pass
 
-    
+
 TIMEOUT = 15
 
 class HeosPlayerConfigException(Exception):
@@ -89,7 +89,7 @@ This needs a JSON config file with a minimal content:
         
         # if host and pid is not known, detect the first HEOS device.
         if rediscover or (not self.host or not self.pid):
-            logging.info("Starting to discover your HEOS player '{}' in your local network".format(self.main_player_name))
+            logging.info(u"Starting to discover your HEOS player '{}' in your local network".format(self.main_player_name))
             ssdp_list = ssdp.discover(self.URN_SCHEMA)
             logging.debug("found {} possible hosts: {}".format(len(ssdp_list), ssdp_list))
             self.telnet = None
@@ -104,7 +104,7 @@ This needs a JSON config file with a minimal content:
                         logging.debug("pid '{}'".format(self.pid))                                            
                         if self.pid:
                             self.main_player_name = self._config.get("player_name", self._config.get("main_player_name"))
-                            logging.info("Found main player '{}' in your local network".format(self.main_player_name))
+                            logging.info(u"Found main player '{}' in your local network".format(self.main_player_name))
                             break
                     except Exception as e:
                         logging.error(e)
@@ -117,8 +117,9 @@ This needs a JSON config file with a minimal content:
             self._update_groups_players()
             
         else:
-            logging.info("My cache says your HEOS player '{}' is at {}".format(self.main_player_name,
-                                                                               self.host))
+            print(repr(self.main_player_name))
+            logging.info(u"My cache says your HEOS player '{}' is at {}".format(self.main_player_name,
+                                                                                self.host))
             try:
                 self.telnet = telnetlib.Telnet(self.host, 1255, timeout=TIMEOUT)
             except Exception as e:
@@ -128,7 +129,7 @@ This needs a JSON config file with a minimal content:
         if self.host is None:
             logging.error("No HEOS player found in your local network")
         elif self.pid is None:
-            logging.error("No player with name '{}' found for being a main player!".format(self.main_player_name))
+            logging.error(u"No player with name '{}' found for being a main player!".format(self.main_player_name))
         else:
             # get user and password
             if self.login(user=self._config.get("user"),
@@ -211,8 +212,11 @@ This needs a JSON config file with a minimal content:
                 logging.info("In total, I found {} {} in your local network.".format(len(self.names[aggregate]), aggregate))
             else:
                 msg = "I couldn't find a list of {}.".format(aggregate)
-                logging.error(msg)
-                raise HeosPlayerGeneralException(msg)
+                if aggregate == "groups":
+                    logging.warn(msg)
+                else:
+                    logging.error(msg)
+                    raise HeosPlayerGeneralException(msg)
         
         return True
 
