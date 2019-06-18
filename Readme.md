@@ -1,5 +1,8 @@
 # Control an HEOS player with a Python script
 
+[![Build Status](https://travis-ci.org/ping13/heospy.svg?branch=master)](https://travis-ci.org/ping13/heospy)
+[![PyPI version](https://badge.fury.io/py/heospy.svg)](https://badge.fury.io/py/heospy)
+
 ## Requirements
 
 You have an [HEOS][] speaker in your local network and Python 2.7 or
