@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/ping13/heospy.svg?branch=master)](https://travis-ci.org/ping13/heospy)
 [![PyPI version](https://badge.fury.io/py/heospy.svg)](https://badge.fury.io/py/heospy)
+[![Downloads](https://pepy.tech/badge/heospy)](https://pepy.tech/project/heospy)
 
 ## Requirements
 
