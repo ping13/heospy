@@ -20,8 +20,15 @@ import sys
 import time
 from collections import OrderedDict
 
-from . import ssdp # Simple Service Discovery Protocol (SSDP), https://gist.github.com/dankrause/6000248
+import pkg_resources  # part of setuptools
+my_version = pkg_resources.require("heospy")[0].version
 
+# Simple Service Discovery Protocol (SSDP),
+# https://gist.github.com/dankrause/6000248, should be right next to this file.
+try:
+    from . import ssdp 
+except ImportError: # when run locally, relative import does not work
+    import ssdp
 
 # determine a default path for the config file
 DEFAULT_CONFIG_PATH = "."
@@ -117,7 +124,6 @@ This needs a JSON config file with a minimal content:
             self._update_groups_players()
             
         else:
-            print(repr(self.main_player_name))
             logging.info(u"My cache says your HEOS player '{}' is at {}".format(self.main_player_name,
                                                                                 self.host))
             try:
@@ -268,7 +274,7 @@ This needs a JSON config file with a minimal content:
                 # reassign key
                 key = idx[key]
                 # analyse the value, which could be one or many speaker names
-                named_values = value.decode("utf-8").split(u",")
+                named_values = value.split(u",")
                 value_list = []
                 for named_value in named_values:
                     new_value = self.names[ idx2[key] ].get(named_value, False)
@@ -324,12 +330,14 @@ This needs a JSON config file with a minimal content:
 def parse_args():
     """Parse command line arguments."""
 
-    epilog = """Some example commands:
+    epilog = f"""Some example commands:
         
   heos_player player/toggle_mute
   heos_player player/set_volume -p level=19
   heos_player player/play_preset -p preset=3
   heos_player player/set_play_state -p state=stop
+
+heospy version: {my_version}
 """
 
     parser = argparse.ArgumentParser(description=__doc__, epilog=epilog,
