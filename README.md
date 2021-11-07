@@ -9,7 +9,7 @@ You have an [HEOS][] speaker in your local network and Python 3.
 ## Usage
 
 0. Install the package with `pip install heospy` or by downloading the source
-   package and run `python setup.py install`.
+   package and run `pip install .`.
 
 1. Create a `config.json` file, which may reside in the current directory, in
    `$HOME/.heospy` or in a directory wich is specified by the environment
