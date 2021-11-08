@@ -18,6 +18,7 @@ import six
 import sys
 import time
 from collections import OrderedDict
+from pathlib import Path
 
 # Simple Service Discovery Protocol (SSDP),
 # https://gist.github.com/dankrause/6000248, should be right next to this file.
@@ -350,6 +351,8 @@ def parse_args():
                         help="optional key-value pairs that needs to be accompanied to the command that is sent to the HEOS player.")
     parser.add_argument("-c", "--config", dest="config", default="", metavar="filename",
                         help="config file (by default, the script looks for a config file called `config.json` in the current directory, then in $HOME/.heospy, then in $HEOSPY_CONF)")
+    parser.add_argument("-lf", "--lockfile", dest="lockfile", default="", metavar="filename",
+                        help="create a lockfile while processing.")
     parser.add_argument("-l", "--log", dest="logLevel", default="INFO",
                         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], help="Set the logging level")
 
@@ -360,94 +363,104 @@ def main():
     heos_cmd = script_args.cmd
     heos_args = {}
 
-    logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',
-                        level=getattr(logging, script_args.logLevel))
-    
-    if script_args.param:
-        try:
-            heos_args = OrderedDict(script_args.param)
-        except ValueError:
-            logging.error("there are some errors in your '--param' arguments: '{}'".format(script_args.param))
-            sys.exit(0)
+    # if there is a lockfile specified, create one. This is helpful to indicate
+    # to systems like Homebridge that this process is actually running
+    if script_args.lockfile:
+        Path(script_args.lockfile).touch()
 
-    # determine the config file
-    logging.debug("DEFAULT_CONFIG_PATH is '{}'".format(DEFAULT_CONFIG_PATH))
-    config_file  = os.path.join(DEFAULT_CONFIG_PATH, 'config.json')
-    if script_args.config:
-        config_file  = script_args.config
-        logging.debug("from --config, I got '{}'".format(config_file))
-
-    # initialize connection to HEOS player
-    try:
-        p = HeosPlayer(rediscover = script_args.rediscover, config_file=config_file)
-    except HeosPlayerConfigException:
-        logging.info("Try to find a valid config file and specify it with '--config'...")
-        sys.exit(-1)
-    except HeosPlayerGeneralException:
-        # if the connection failed, it might be because the cached IP for
-        # the HEOS player is not valid anymore. We check if we can rediscover
-        # the new IP of the HEOS player
-        if script_args.rediscover == False:
-            logging.info("First connection failed. Try to rediscover the HEOS players.")
-            p = HeosPlayer(rediscover = True, config_file=config_file)
-    except:
-        logging.error("Someting unexpected got wrong...")
-        raise
-
-    # check status or issue a command
-    if script_args.status:
-        logging.info("Try to find some status info from {}".format(p.host))
-        print(json.dumps(p.status(), indent=2))
-    elif script_args.infile:
-        logging.debug("reading a list of commands from {}".format(script_args.infile))
-        all_lines = script_args.infile.read().splitlines()
-        # execute each cmd
-        all_results = []
-        fail = False
-        for line in all_lines:
-            if len(line) > 0 and line[0] == "#": continue # skip comments
-            # get elements separated by whitespaces
-            cmd_args = line.split()
-            if len(cmd_args) == 0: continue
-            # first element is the command, like "player/set_volume"
-            heos_cmd = cmd_args[0]
-            if heos_cmd == "wait": # this is a special command
-                try:
-                    secs = int(cmd_args[1])
-                except IndexError:
-                    secs=1
-                time.sleep(secs)
-                all_results.append({ "heospy" : { "sleep": "successful for {} secs".format(secs) } })
-            else:
-                # other elements are parameters like "level=10" or "pid=387387",
-                # collect them in a dictionary
-                heos_args = OrderedDict([ kv.split("=") for kv in cmd_args[1:] ])
-                # issue the actual command
-                logging.info("Issue command '{}' with arguments {}".format(heos_cmd, json.dumps(heos_args)))
-                result = p.cmd(heos_cmd, heos_args)
-                all_results.append(result)
-                if result.get("heos", {}).get("result", "") != "success":
-                    fail = True
-                    break
-            
-        # print all results at the end
-        print(json.dumps(all_results, indent=2))
-
-        # if the last result was not a success, return with -1
-        if fail:
-            sys.exit(-1)
-            
-    elif heos_cmd:
-        logging.info("Issue command '{}' with arguments {}".format(heos_cmd, json.dumps(heos_args)))
-        result = p.cmd(heos_cmd, heos_args)
-        print(json.dumps(result, indent=2))
-
-        # if the result was not a success, return with -1
-        if result.get("heos", {}).get("result", "") != "success":
-            sys.exit(-1)
-    else:
-        logging.info("Nothing to do.")
+    try: 
+        logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',
+                            level=getattr(logging, script_args.logLevel))
         
+        if script_args.param:
+            try:
+                heos_args = OrderedDict(script_args.param)
+            except ValueError:
+                logging.error("there are some errors in your '--param' arguments: '{}'".format(script_args.param))
+                sys.exit(0)
+
+        # determine the config file
+        logging.debug("DEFAULT_CONFIG_PATH is '{}'".format(DEFAULT_CONFIG_PATH))
+        config_file  = os.path.join(DEFAULT_CONFIG_PATH, 'config.json')
+        if script_args.config:
+            config_file  = script_args.config
+            logging.debug("from --config, I got '{}'".format(config_file))
+
+        # initialize connection to HEOS player
+        try:
+            p = HeosPlayer(rediscover = script_args.rediscover, config_file=config_file)
+        except HeosPlayerConfigException:
+            logging.info("Try to find a valid config file and specify it with '--config'...")
+            sys.exit(-1)
+        except HeosPlayerGeneralException:
+            # if the connection failed, it might be because the cached IP for
+            # the HEOS player is not valid anymore. We check if we can rediscover
+            # the new IP of the HEOS player
+            if script_args.rediscover == False:
+                logging.info("First connection failed. Try to rediscover the HEOS players.")
+                p = HeosPlayer(rediscover = True, config_file=config_file)
+        except:
+            logging.error("Someting unexpected got wrong...")
+            raise
+
+        # check status or issue a command
+        if script_args.status:
+            logging.info("Try to find some status info from {}".format(p.host))
+            print(json.dumps(p.status(), indent=2))
+        elif script_args.infile:
+            logging.debug("reading a list of commands from {}".format(script_args.infile))
+            all_lines = script_args.infile.read().splitlines()
+            # execute each cmd
+            all_results = []
+            fail = False
+            for line in all_lines:
+                if len(line) > 0 and line[0] == "#": continue # skip comments
+                # get elements separated by whitespaces
+                cmd_args = line.split()
+                if len(cmd_args) == 0: continue
+                # first element is the command, like "player/set_volume"
+                heos_cmd = cmd_args[0]
+                if heos_cmd == "wait": # this is a special command
+                    try:
+                        secs = int(cmd_args[1])
+                    except IndexError:
+                        secs=1
+                        time.sleep(secs)
+                        all_results.append({ "heospy" : { "sleep": "successful for {} secs".format(secs) } })
+                else:
+                    # other elements are parameters like "level=10" or "pid=387387",
+                    # collect them in a dictionary
+                    heos_args = OrderedDict([ kv.split("=") for kv in cmd_args[1:] ])
+                    # issue the actual command
+                    logging.info("Issue command '{}' with arguments {}".format(heos_cmd, json.dumps(heos_args)))
+                    result = p.cmd(heos_cmd, heos_args)
+                    all_results.append(result)
+                    if result.get("heos", {}).get("result", "") != "success":
+                        fail = True
+                        break
+                    
+            # print all results at the end
+            print(json.dumps(all_results, indent=2))
+
+            # if the last result was not a success, return with -1
+            if fail:
+                sys.exit(-1)
+                
+        elif heos_cmd:
+            logging.info("Issue command '{}' with arguments {}".format(heos_cmd, json.dumps(heos_args)))
+            result = p.cmd(heos_cmd, heos_args)
+            print(json.dumps(result, indent=2))
+
+            # if the result was not a success, return with -1
+            if result.get("heos", {}).get("result", "") != "success":
+                sys.exit(-1)
+        else:
+            logging.info("Nothing to do.")
+
+    finally:
+        # we may want to delete the lockfile created earlier, no matter how things were going previously.
+        if script_args.lockfile:
+            Path(script_args.lockfile).unlink()
 
 
 
