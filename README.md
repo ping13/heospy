@@ -8,11 +8,11 @@ You have an [HEOS][] speaker in your local network and Python 3.
 
 ## Usage
 
-0. Install the package with `pip install heospy` or by downloading the source
+0. Install the package with `pip install heospy` (or `pip install git+https://github.com/ping13/heospy.git` or by downloading the source
    package and run `pip install .`.
 
 1. Create a `config.json` file, which may reside in the current directory, in
-   `$HOME/.heospy` or in a directory wich is specified by the environment
+   a directory called `$HOME/.heospy/` or in a directory wich is specified by the environment
    variable `$HEOSPY_CONF`. The config file contains the name of the lead
    [HEOS][] player you want to control and the username and password of your
    [HEOS account][]. See `example-config.json` for an example.
