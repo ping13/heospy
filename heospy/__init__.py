@@ -341,7 +341,7 @@ def parse_args():
     parser.add_argument("cmd", nargs="?",
                         help="command to send to HEOS player")
     parser.add_argument("-i", '--infile', nargs='?', type=argparse.FileType('r'),
-                        default=None)
+                        default=None, help="specifiy a sequence of commands")
     parser.add_argument("-s", "--status", action='store_true', default=False,
                         help="return various status information", dest="status")
     parser.add_argument("-r", "--rediscover", action='store_true', default=False,
@@ -420,6 +420,11 @@ def main():
                 if len(cmd_args) == 0: continue
                 # first element is the command, like "player/set_volume"
                 heos_cmd = cmd_args[0]
+                # check if we want to ignore a fail here
+                ignore_fail = False
+                if cmd_args[-1] == "--ignore-fail":
+                    ignore_fail = True
+                    cmd_args = cmd_args[0:-1]
                 if heos_cmd == "wait": # this is a special command
                     try:
                         secs = int(cmd_args[1])
@@ -435,7 +440,7 @@ def main():
                     logging.info("Issue command '{}' with arguments {}".format(heos_cmd, json.dumps(heos_args)))
                     result = p.cmd(heos_cmd, heos_args)
                     all_results.append(result)
-                    if result.get("heos", {}).get("result", "") != "success":
+                    if result.get("heos", {}).get("result", "") != "success" and not ignore_fail:
                         fail = True
                         break
                     
