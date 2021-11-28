@@ -143,7 +143,7 @@ This needs a JSON config file with a minimal content:
         # save config
         if (rediscover or self._config.get("pid") is None) and self.host and self.pid:
                 
-            logging.info("Save host and pid in {}".format(config_file))
+            logging.info("Save host and pid in {}".format(self._config_file))
             self._config["pid"] = self.pid
             self._config["host"] = self.host
             with open(os.path.join(self._config_file), "w") as json_data_file:
@@ -350,7 +350,7 @@ def parse_args():
                         type=lambda kv: kv.split("="), dest='param', metavar="param=value",
                         help="optional key-value pairs that needs to be accompanied to the command that is sent to the HEOS player.")
     parser.add_argument("-c", "--config", dest="config", default="", metavar="filename",
-                        help="config file (by default, the script looks for a config file called `config.json` in the current directory, then in $HOME/.heospy, then in $HEOSPY_CONF)")
+                        help="config file (by default, the script looks for a config file called `config.json` in the current directory, then in $HOME/.heospy/, then in the path specified in $HEOSPY_CONF)")
     parser.add_argument("-lf", "--lockfile", dest="lockfile", default="", metavar="filename",
                         help="create a lockfile while processing.")
     parser.add_argument("-l", "--log", dest="logLevel", default="INFO",
