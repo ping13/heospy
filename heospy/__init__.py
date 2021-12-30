@@ -233,7 +233,10 @@ This needs a JSON config file with a minimal content:
                 return player.get("pid")
         return None
 
-    def login(self, user = "", pw = ""):
+    def login(self, user = None , pw = None):
+        if user is None or pw is None:
+            logging.info("No user or password found in config, skip login step")
+            return {}
         # fist check if we're already signed in: get the currently signed in
         # user from the system
         signed_in_message = self.telnet_request("system/check_account").get("heos",{}).get("message", "")
