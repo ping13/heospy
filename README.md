@@ -8,7 +8,10 @@ You have an [HEOS][] speaker in your local network and Python 3.
 
 ## Usage
 
-0. Install the package with `pip install heospy` (latest published release from pypi) or `pip install git+https://github.com/ping13/heospy.git` (if you want to use the latest git version). You can also download the source package and run `pip install .`.
+0. Install the package with `pip install heospy` (latest published release from
+   pypi) or `pip install git+https://github.com/ping13/heospy.git` (if you want
+   to use the latest git version). You can also download the source package and
+   run `pip install .`.
 
 1. Create a `config.json` file, which may reside in the current directory, in
    a directory called `$HOME/.heospy/` or in a directory wich is specified by the environment
@@ -144,7 +147,36 @@ You can also get the sequence of commands from `stdin`:
 
     printf "system/heart_beat\nplayer/set_volume level=10\nplayer/get_volume" | heos_player -i -
 
-## Usage with Raspberry Pi and Kodi
+## Example Usage 
+
+### Usage with HomeKit
+
+With [Homebridge](https://homebridge.io) and the [Homebridge Script2
+plugin](https://github.com/pponce/homebridge-script2), you can bind your
+`heospy`-scripts to an HomeKit-button:
+
+Example configuration:
+
+```json
+{
+    "on": "cat /homebridge/scripts/heos_on.heospy | /homebridge/env/bin/heos_player -c /homebridge/heos_config.json -i -",
+    "name": "HEOS",
+    "on_value": "play",
+    "off": "printf 'player/set_play_state pname=Balkon state=pause' | /homebridge/env/bin/heos_player -c /homebridge/heos_config.json -i -",
+    "state": "/homebridge/env/bin/heos_player -pname=Balkon -l ERROR -c /homebridge/heos_config.json player/get_play_state | jq -r .heos_message_parsed.state",
+    "accessory": "Script2"
+}
+```
+
+Example `heos_on.heospy`-script:
+
+```
+group/set_mute gid=-19041904 state=off --ignore-fail
+player/set_play_state pid=-1440680417 state=play
+group/set_volume gid=-19041904 level=13 --ignore-fail
+```
+
+### Usage with Raspberry Pi and Kodi
 
 If you have [OSMC][] or any other [Kodi Media center][Kodi] implementation on
 your [Raspberry Pi][raspi], you can map certain actions for your HEOS on a
