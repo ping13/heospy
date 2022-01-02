@@ -48,7 +48,7 @@ You have an [HEOS][] speaker in your local network and Python 3.
 `heos_player` returns a JSON object which directly comes from an HEOS
 player. For example:
 
-    python heospy/heos_player.py player/get_volume
+    heos_player player/get_volume
     
 gives something like
 
@@ -79,7 +79,7 @@ puts the contained attributes in a seperate property `heos_message_parsed`:
 With [`jq`](https://stedolan.github.io/jq/), you can directly get the result on
 the command line:
 
-     $ python heospy/heos_player.py player/get_volume | jq .heos_message_parsed.level
+     $ heos_player player/get_volume | jq .heos_message_parsed.level
      "13"
 
 ## Main player setting and referencing other players by name
@@ -93,7 +93,7 @@ You may also specify a player by name by using the fake parameter `pname`: the
 class `HeosPlayer` will search for a player with the given name and will try to
 translate it to a player id, e.g. with:
 
-      $ python heospy/heos_player.py player/get_volume -p pname=Küche
+      $ heos_player player/get_volume -p pname=Küche
       [...]
       2019-01-15 20:04:51,624 INFO Issue command 'player/get_volume' with arguments {"pname": "K\u00fcche"}
       2019-01-15 20:04:51,624 DEBUG translated name 'Küche' to {'pname': 'pid', 'gname': 'gid'}=941891005
@@ -162,8 +162,8 @@ Example configuration:
     "on": "cat /homebridge/scripts/heos_on.heospy | /homebridge/env/bin/heos_player -c /homebridge/heos_config.json -i -",
     "name": "HEOS",
     "on_value": "play",
-    "off": "printf 'player/set_play_state pname=Balkon state=pause' | /homebridge/env/bin/heos_player -c /homebridge/heos_config.json -i -",
-    "state": "/homebridge/env/bin/heos_player -pname=Balkon -l ERROR -c /homebridge/heos_config.json player/get_play_state | jq -r .heos_message_parsed.state",
+    "off": "printf 'player/set_play_state pid=-19041904 state=pause' | /homebridge/env/bin/heos_player -c /homebridge/heos_config.json -i -",
+    "state": "/homebridge/env/bin/heos_player -l ERROR -c /homebridge/heos_config.json player/get_play_state pid=-19041904 | jq -r .heos_message_parsed.state",
     "accessory": "Script2"
 }
 ```
