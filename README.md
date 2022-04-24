@@ -154,17 +154,33 @@ You can also get the sequence of commands from `stdin`:
 
 With [Homebridge](https://homebridge.io) and the [Homebridge Script2
 plugin](https://github.com/pponce/homebridge-script2), you can bind your
-`heospy`-scripts to an HomeKit-button:
+`heospy`-scripts to a HomeKit-button.
 
-Example configuration:
+Let's assume that you installed HomeBridge via Docker. Set up an environment
+variable `HEOSPY_CONF`for the directory of your config file (could be a mounted
+directoy). Then add the following to the startup script `start.sh`of the docker
+container:
+
+```
+# install jq to parse output from heos_player
+apk add --no-cache jq openssh sshpass screen
+
+# install heos_player
+pip install heospy
+# rediscover HEOS devices
+heos_player --rediscover
+```
+
+Here is an example configuration for an `homebridge-script2`plugin, change the
+pid accordingly:
 
 ```json
 {
-    "on": "cat /homebridge/scripts/heos_on.heospy | /homebridge/env/bin/heos_player -c /homebridge/heos_config.json -i -",
+    "on": "cat /homebridge/scripts/heos_on.heospy | heos_player heos_config.json -i -",
     "name": "HEOS",
     "on_value": "play",
-    "off": "printf 'player/set_play_state pid=-19041904 state=pause' | /homebridge/env/bin/heos_player -c /homebridge/heos_config.json -i -",
-    "state": "/homebridge/env/bin/heos_player -l ERROR -c /homebridge/heos_config.json player/get_play_state pid=-19041904 | jq -r .heos_message_parsed.state",
+    "off": "printf 'player/set_play_state pid=-19041904 state=pause' | heos_player -i -",
+    "state": "heos_player -l ERROR player/get_play_state pid=-19041904 | jq -r .heos_message_parsed.state",
     "accessory": "Script2"
 }
 ```
