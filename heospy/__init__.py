@@ -29,7 +29,7 @@ except ImportError: # when run locally, relative import does not work
 
 # determine a default path for the config file
 DEFAULT_CONFIG_PATH = "."
-for location in os.environ.get("HEOSPY_CONF"), os.environ.get("HEOSPY_CONF"):
+for location in os.path.expanduser("~/.heospy"), os.environ.get("HEOSPY_CONF"):
     if location is None:
         continue
     try:
