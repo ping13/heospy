@@ -29,7 +29,7 @@ except ImportError: # when run locally, relative import does not work
 
 # determine a default path for the config file
 DEFAULT_CONFIG_PATH = "."
-for location in os.environ.get("HEOSPY_CONF"), os.environ.get("HEOSPY_CONF"):
+for location in os.path.expanduser("~/.heospy"), os.environ.get("HEOSPY_CONF"):
     if location is None:
         continue
     try:
@@ -300,10 +300,13 @@ This needs a JSON config file with a minimal content:
         else:
             # if this is a command where a gid or a pid is needed, check if we
             # could use the default pid from the config file
-            if ("groups/" in cmd or "group/" in cmd) and not gid_explicitly_given:
+            if ("group/" in cmd) and not gid_explicitly_given:
                 logging.info("I assume default group with id {0}".format(self.pid))
                 s = '{0}?gid={1}'.format(cmd, self.pid)
             elif ("player/" in cmd or "players" in cmd) and not pid_explicitly_given:
+                logging.info("I assume default player with id {0}".format(self.pid))
+                s = '{0}?pid={1}'.format(cmd, self.pid)
+            elif ("browse/play" in cmd) and not pid_explicitly_given:
                 logging.info("I assume default player with id {0}".format(self.pid))
                 s = '{0}?pid={1}'.format(cmd, self.pid)
             else:
