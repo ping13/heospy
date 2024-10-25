@@ -1,3 +1,5 @@
+# *** This is archived as I don't use it personally and won't work on the code any longer ***
+
 # Control an HEOS player with a Python script
 
 [![PyPI version](https://badge.fury.io/py/heospy.svg)](https://badge.fury.io/py/heospy)
